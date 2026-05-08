@@ -11,7 +11,7 @@ import {
   Dimensions,
   Animated,
   Easing,
-  Pressable,
+  Pressable, 
   Keyboard,
   TouchableWithoutFeedback
 } from 'react-native';
@@ -28,6 +28,9 @@ import {
 import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
+
+// Create an animated version of TextInput
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 const GoogleIcon = () => (
   <Svg width="18" height="18" viewBox="0 0 24 24">
@@ -55,9 +58,9 @@ export const LoginScreen = ({ colors, onLogin }) => {
   const otpRefs = useRef([]);
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  // Animation values for smooth floating labels
-  const emailLabelAnim = useRef(new Animated.Value(email.length > 0 ? 1 : 0)).current;
-  const passLabelAnim = useRef(new Animated.Value(password.length > 0 ? 1 : 0)).current;
+  // Animation values for smooth floating transitions
+  const emailLabelAnim = useRef(new Animated.Value(0)).current;
+  const passLabelAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -68,22 +71,22 @@ export const LoginScreen = ({ colors, onLogin }) => {
     };
   }, []);
 
-  // Animate email label
+  // Animate email label position
   useEffect(() => {
     Animated.timing(emailLabelAnim, {
       toValue: (isEmailFocused || email.length > 0) ? 1 : 0,
-      duration: 200,
-      easing: Easing.bezier(0.4, 0, 0.2, 1),
-      useNativeDriver: false, // Using layout properties for cleaner text
+      duration: 180,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
     }).start();
   }, [isEmailFocused, email]);
 
-  // Animate password label
+  // Animate password label position
   useEffect(() => {
     Animated.timing(passLabelAnim, {
       toValue: (isPasswordFocused || password.length > 0) ? 1 : 0,
-      duration: 200,
-      easing: Easing.bezier(0.4, 0, 0.2, 1),
+      duration: 180,
+      easing: Easing.out(Easing.quad),
       useNativeDriver: false,
     }).start();
   }, [isPasswordFocused, password]);
@@ -211,17 +214,18 @@ export const LoginScreen = ({ colors, onLogin }) => {
                       styles.label, 
                       { 
                         top: emailLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 8] }),
-                        fontSize: emailLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 9] }),
+                        fontSize: emailLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 10] }),
+                        opacity: emailLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }),
                         textTransform: (isEmailFocused || email.length > 0) ? 'uppercase' : 'none'
                       }
                     ]}
                   >
-                    Email or Phone Number
+                    Email Address
                   </Animated.Text>
                   <View style={styles.inputRow}>
                      <TextInput 
                        ref={emailInputRef}
-                       style={[styles.input, { color: colors.text, opacity: (isEmailFocused || email.length > 0) ? 1 : 0 }]}
+                       style={[styles.input, { color: colors.text }]}
                        value={email}
                        onChangeText={setEmail}
                        onFocus={() => setIsEmailFocused(true)}
@@ -230,6 +234,8 @@ export const LoginScreen = ({ colors, onLogin }) => {
                        autoCapitalize="none"
                        keyboardType="email-address"
                        selectionColor={colors.secondary}
+                       spellCheck={false}
+                       autoCorrect={false}
                      />
                      {step === 'password' && (
                        <TouchableOpacity onPress={() => setStep('email')}>
@@ -251,7 +257,8 @@ export const LoginScreen = ({ colors, onLogin }) => {
                         styles.label, 
                         { 
                           top: passLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 8] }),
-                          fontSize: passLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 9] }),
+                          fontSize: passLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 10] }),
+                          opacity: passLabelAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }),
                           textTransform: (isPasswordFocused || password.length > 0) ? 'uppercase' : 'none'
                         }
                       ]}
@@ -261,7 +268,7 @@ export const LoginScreen = ({ colors, onLogin }) => {
                     <View style={styles.inputRow}>
                       <TextInput 
                         ref={passwordInputRef}
-                        style={[styles.input, { color: colors.text, flex: 1, opacity: (isPasswordFocused || password.length > 0) ? 1 : 0 }]}
+                        style={[styles.input, { color: colors.text, flex: 1 }]}
                         value={password}
                         onChangeText={setPassword}
                         onFocus={() => setIsPasswordFocused(true)}
@@ -269,6 +276,8 @@ export const LoginScreen = ({ colors, onLogin }) => {
                         secureTextEntry={!showPassword}
                         selectionColor={colors.secondary}
                         autoFocus
+                        spellCheck={false}
+                        autoCorrect={false}
                       />
                       <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                         {showPassword ? <EyeOff size={18} color={colors.secondary} strokeWidth={2.5} /> : <Eye size={18} color={colors.secondary} strokeWidth={2.5} />}
@@ -364,7 +373,7 @@ export const LoginScreen = ({ colors, onLogin }) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { padding: 32, alignItems: 'center', flexGrow: 1, paddingTop: 30, paddingBottom: 110 },
-  logoContainer: { height: 180, width: 180, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  logoContainer: { height: 180, width: 180, alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
   ringContainer: { position: 'absolute', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
   dot: { position: 'absolute', width: 5, height: 5, borderRadius: 3 },
   squircle: { 
@@ -374,17 +383,26 @@ const styles = StyleSheet.create({
   },
   headerArea: { alignItems: 'center', marginBottom: 20 },
   collegeName: { 
-    fontSize: 13.5, fontWeight: '900', letterSpacing: 0.8, marginBottom: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', textTransform: 'uppercase'
+    fontSize: 13, 
+    fontWeight: '600', 
+    letterSpacing: 0.8, 
+    marginBottom: 15,
+    fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif', 
+    textTransform: 'uppercase'
   },
-  title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2 },
+  title: { fontSize: 28, fontWeight: '900', letterSpacing: -1 }, 
   otpSub: { alignItems: 'center', marginTop: 8 },
   otpSubText: { fontSize: 11, fontWeight: '600' },
   emailEdit: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   emailTarget: { fontSize: 11, fontWeight: 'bold', color: '#3b82f6', marginRight: 6 },
   formArea: { width: '100%', marginBottom: 30 },
-  inputGroup: { width: '100%', borderRadius: 14, borderWidth: 1.5, overflow: 'hidden' },
-  inputItem: { paddingHorizontal: 18, minHeight: 60, justifyContent: 'center' },
+  inputGroup: { 
+    width: '100%', 
+    borderRadius: 14, 
+    borderWidth: 1.5, 
+    overflow: 'hidden' 
+  },
+  inputItem: { paddingHorizontal: 18, height: 62, justifyContent: 'center' },
   disabledInput: { opacity: 0.6 },
   label: { 
     fontWeight: '700', 
@@ -394,7 +412,7 @@ const styles = StyleSheet.create({
     left: 18,
   },
   inputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  input: { fontSize: 16, fontWeight: '700', paddingVertical: 4, marginTop: 16 },
+  input: { fontSize: 16, fontWeight: '700', paddingVertical: 4, marginTop: 18 },
   backBtn: { padding: 4 },
   borderTop: { borderTopWidth: 1.5 },
   forgotBtn: { alignSelf: 'flex-end', marginTop: 12, marginRight: 2 },
@@ -410,14 +428,14 @@ const styles = StyleSheet.create({
   iconCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5 },
   privacyText: { fontSize: 12.5, lineHeight: 18, fontWeight: '600', paddingRight: 20 },
   buttonGroup: { flexDirection: 'row', width: '100%', justifyContent: 'space-between', marginBottom: 40 },
-  mainBtn: { flex: 1, marginRight: 10, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  mainBtn: { flex: 1, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   mainBtnText: { fontSize: 16, fontWeight: 'bold' },
   socialBtn: { flex: 1, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', borderWidth: 1.5 },
   socialText: { fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
   versionFooter: { 
-    alignItems: 'center', paddingTop: 8, paddingBottom: 12, 
+    alignItems: 'center', paddingTop: 8, paddingBottom: 15, 
     position: 'absolute', bottom: 5, left: 0, right: 0 
   },
-  versionText: { fontSize: 13, fontWeight: '900', letterSpacing: 1, marginBottom: 4 },
-  copyrightText: { fontSize: 12, fontWeight: '600', textAlign: 'center' }
+  versionText: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 }, 
+  copyrightText: { fontSize: 11, fontWeight: '500', textAlign: 'center', opacity: 0.8 }
 });

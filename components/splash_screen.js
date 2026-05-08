@@ -9,7 +9,7 @@ export const AnimatedLogo = ({ scale = 1, theme = 'light' }) => (
     <View style={[
       styles.logoShield, 
       { backgroundColor: theme === 'dark' ? '#1e293b' : '#000000', 
-        borderColor: theme === 'dark' ? '#334155' : '#000000' }
+        borderColor: theme === 'dark' ? '#334155' : '#1e293b' }
     ]}>
       <ShieldCheck color="#ffffff" size={44} strokeWidth={2} />
     </View>
@@ -17,7 +17,7 @@ export const AnimatedLogo = ({ scale = 1, theme = 'light' }) => (
 );
 
 export const SplashScreen = ({ colors, theme }) => (
-  <View style={styles.centerLayout}>
+  <View style={[styles.centerLayout, { backgroundColor: colors.background }]}>
     <View style={styles.logoWrapper}>
       <View style={[styles.glow, { backgroundColor: colors.primary, opacity: theme === 'dark' ? 0.2 : 0.1 }]} />
       <AnimatedLogo scale={1.1} theme={theme} />
@@ -37,24 +37,27 @@ export const SplashScreen = ({ colors, theme }) => (
 );
 
 export const LoadingScreen = ({ progress, loadingText, colors, theme }) => (
-  <View style={[styles.centerLayout, { backgroundColor: '#0f172a' }]}>
+  <View style={[styles.centerLayout, { backgroundColor: colors.background }]}>
     <View style={{ marginBottom: 60 }}>
-      <AnimatedLogo scale={0.9} theme="dark" />
+      <AnimatedLogo scale={0.9} theme={theme} />
     </View>
     
     <View style={styles.textGroup}>
-      <Text style={[styles.collegeName, { color: '#64748b' }]}>DVR & DR. HS MIC COLLEGE</Text>
-      <Text style={[styles.mainTitle, { color: '#ffffff', fontSize: 24 }]}>
+      <Text style={[styles.collegeName, { color: colors.textMuted }]}>DVR & DR. HS MIC COLLEGE</Text>
+      <Text style={[styles.mainTitle, { color: colors.text, fontSize: 24 }]}>
         Discipline <Text style={{ color: colors.primary }}>Committee</Text>
       </Text>
+      <Text style={[styles.subTitle, { color: colors.textMuted, fontSize: 16 }]}>Faculty App</Text>
     </View>
 
     <View style={styles.loadingWrapper}>
+      {/* FIXED: Replaced div with View and added proper styles */}
       <View style={styles.loadingHeader}>
-        <Text style={[styles.loadingStatus, { color: '#64748b' }]}>{loadingText}</Text>
+        <Text style={[styles.loadingStatus, { color: colors.textMuted }]}>{loadingText}</Text>
         <Text style={[styles.percentage, { color: colors.primary }]}>{progress}%</Text>
       </View>
-      <View style={[styles.progressBarBg, { backgroundColor: '#1e293b' }]}>
+      
+      <View style={[styles.progressBarBg, { backgroundColor: theme === 'dark' ? '#1e293b' : '#e2e8f0' }]}>
         <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: colors.primary }]} />
       </View>
     </View>
@@ -71,22 +74,28 @@ const styles = StyleSheet.create({
     borderWidth: 1, alignItems: 'center', justifyContent: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 8,
   },
   textGroup: { alignItems: 'center', paddingHorizontal: 20 },
   collegeName: { 
-    fontSize: 12, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase',
+    fontSize: 12, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase',
     fontFamily: Platform.OS === 'ios' ? 'Times New Roman' : 'serif',
     textAlign: 'center'
   },
   mainTitle: { fontSize: 30, fontWeight: '900', letterSpacing: -0.5, textAlign: 'center', marginTop: 4 },
   subTitle: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginTop: 2, opacity: 0.8 },
   loadingWrapper: { width: '80%', maxWidth: 300, marginTop: 50 },
-  loadingHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'flex-end' },
+  // Added style for the progress bar header
+  loadingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 10,
+  },
   loadingStatus: { fontSize: 11, fontWeight: 'bold', letterSpacing: 0.5, textTransform: 'uppercase' },
   percentage: { fontSize: 14, fontWeight: '900' },
-  progressBarBg: { height: 6, borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  progressBarBg: { height: 6, borderRadius: 10, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 10 },
 });
