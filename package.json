@@ -1,21 +1,50 @@
 {
   "name": "micfacultyapp",
   "version": "1.0.0",
+  "description": "MIC Faculty mobile app",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "node scripts/run-with-safe-path.mjs npx expo start",
+    "prestart:lan": "node scripts/free-metro-port.mjs",
+    "start:lan": "node scripts/run-with-safe-path.mjs npx expo start --lan --clear",
+    "start:device": "node scripts/run-with-safe-path.mjs npx expo start --lan --clear",
+    "prestart:tunnel": "node scripts/free-metro-port.mjs",
+    "start:tunnel": "node scripts/start-tunnel.mjs",
+    "prestart:localhost": "node scripts/adb-reverse-all.mjs",
+    "start:localhost": "node scripts/run-with-safe-path.mjs npx expo start --localhost --clear",
+    "android": "node scripts/run-with-safe-path.mjs npx expo start --android",
+    "android:device": "npm run start:device",
+    "android:usb": "node scripts/android-dev.mjs",
+    "adb:reverse": "node scripts/adb-reverse-all.mjs",
+    "ios": "node scripts/run-with-safe-path.mjs npx expo start --ios",
+    "web": "node scripts/start-web.mjs"
   },
   "dependencies": {
-    "expo": "~54.0.33",
-    "expo-status-bar": "~3.0.9",
+    "@callstack/liquid-glass": "^0.7.1",
+    "@expo/config-plugins": "^57.0.9",
+    "@react-native-community/netinfo": "12.0.1",
+    "expo": "~57.0.23",
+    "expo-blur": "~57.0.3",
+    "expo-build-properties": "~57.0.17",
+    "expo-camera": "~57.0.5",
+    "expo-crypto": "~57.0.3",
+    "expo-font": "~57.0.4",
+    "expo-linear-gradient": "~57.0.2",
+    "expo-local-authentication": "~57.0.3",
+    "expo-secure-store": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
     "lucide-react-native": "^1.14.0",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-svg": "15.12.1"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.0"
   },
-  "private": true
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
 }
