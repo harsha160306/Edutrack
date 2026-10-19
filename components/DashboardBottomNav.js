@@ -344,13 +344,6 @@ export const DashboardBottomNav = ({
                   const iconColor = selected ? selectedIcon : inactive;
                   const labelColor = selected ? labelActive : inactive;
 
-                {tabs.map((tab) => {
-                  const selected = activeTab === tab.id;
-                  const Icon = tab.Icon;
-                  const showBadge = tab.id === 'notices' && noticesBadge;
-                  const iconColor = selected ? selectedIcon : inactive;
-                  const labelColor = selected ? labelActive : inactive;
-
                   return (
                     <TouchableOpacity
                       key={tab.id}
