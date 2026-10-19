@@ -7,14 +7,12 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
-  Alert,
 } from 'react-native';
 import {
   ArrowLeft,
   Clock,
   ShieldAlert,
   Search,
-  Filter,
   CheckCircle,
   AlertTriangle,
   MapPin,
@@ -22,6 +20,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  ShieldCheck,
+  Info,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -46,11 +46,14 @@ const DISCIPLINARY_RECORDS = [
     location: 'Main Gate #1',
     severity: 'Warning',
     status: 'Recorded',
-    fineAmount: 100,
-    fineStatus: 'Payment Due',
+    chanceNumber: 2,
+    chanceStatus: 'warning',
+    chanceBadgeLabel: 'Chance 2 of 3 • 2nd Warning',
+    penaltyStatus: 'Zero Fine (Within 3-Chance Grace Allowance)',
     description:
       'Arrived 12 minutes after the scheduled morning cutoff gate closure (09:30 AM). Biometric verification completed at Gate #1.',
-    actionTaken: '1st Morning Entry Warning logged. Standard delay fee applied.',
+    actionTaken:
+      '2nd Morning Entry Warning logged under 3-Chance Policy. Zero fine applicable. Student counseled on gate timings.',
   },
   {
     id: 'rec-002',
@@ -62,13 +65,16 @@ const DISCIPLINARY_RECORDS = [
     reportedBy: 'Prof. S. Rao',
     committee: 'Campus Vigilance Squad',
     location: 'Central Library Entrance',
-    severity: 'Minor',
+    severity: 'Warning',
     status: 'Resolved',
-    fineAmount: 50,
-    fineStatus: 'Paid',
+    chanceNumber: 1,
+    chanceStatus: 'warning',
+    chanceBadgeLabel: 'Chance 1 of 3 • 1st Warning',
+    penaltyStatus: 'Zero Fine (Within 3-Chance Grace Allowance)',
     description:
       'Student was not wearing physical institutional ID tag during campus corridor random check. Digital ID on phone was verified.',
-    actionTaken: 'Minor counseling issued. Advised to always display lanyard with institutional badge.',
+    actionTaken:
+      '1st Warning issued under 3-Chance Policy. Advised to always wear institutional lanyard. Zero fine applicable.',
   },
   {
     id: 'rec-003',
@@ -80,31 +86,16 @@ const DISCIPLINARY_RECORDS = [
     reportedBy: 'Mr. P. V. Ramana',
     committee: 'Floor In-charge',
     location: 'CSE Block 3rd Floor',
-    severity: 'Minor',
+    severity: 'Excused',
     status: 'Excused',
-    fineAmount: 0,
-    fineStatus: 'Waived',
+    chanceNumber: null,
+    chanceStatus: 'excused',
+    chanceBadgeLabel: 'Excused • 0 Chances Deducted',
+    penaltyStatus: 'Zero Fine (Approved by HOD Consent)',
     description:
       'Reported 7 minutes late for Database Systems practical lab session due to technical seminar wrap-up.',
-    actionTaken: 'Subject faculty verified seminar participation. Excused with HOD consent.',
-  },
-  {
-    id: 'rec-004',
-    type: 'latecomer',
-    title: 'Morning Cutoff Delay',
-    date: '18 Aug 2026',
-    time: '09:39 AM',
-    semester: 'Semester 5',
-    reportedBy: 'Dr. R. Sharma',
-    committee: 'Discipline Committee Member',
-    location: 'Main Gate #2',
-    severity: 'Warning',
-    status: 'Recorded',
-    fineAmount: 50,
-    fineStatus: 'Paid',
-    description:
-      'Arrived 9 minutes past gate schedule due to district highway bus congestion.',
-    actionTaken: 'Recorded and acknowledged.',
+    actionTaken:
+      'Subject faculty verified seminar participation. Excused with HOD consent. Grace chances fully preserved.',
   },
 ];
 
@@ -135,9 +126,11 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
     return true;
   });
 
+  const totalChancesAllowed = 3;
   const lateCount = DISCIPLINARY_RECORDS.filter((r) => r.type === 'latecomer').length;
   const indisciplineCount = DISCIPLINARY_RECORDS.filter((r) => r.type === 'indiscipline').length;
-  const totalFine = DISCIPLINARY_RECORDS.reduce((sum, r) => sum + r.fineAmount, 0);
+  const usedChances = DISCIPLINARY_RECORDS.filter((r) => r.chanceStatus === 'warning').length;
+  const remainingChances = Math.max(0, totalChancesAllowed - usedChances);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -159,7 +152,7 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
           <View style={styles.headerTitleWrap}>
             <Text style={[styles.headerTitle, { color: textColor }]}>My Record</Text>
             <Text style={[styles.headerSubtitle, { color: mutedColor }]}>
-              In-Discipline & Latecomer Logs
+              In-Discipline & Latecomer Logs • 3-Chance Policy
             </Text>
           </View>
           <View style={{ width: 36 }} />
@@ -169,7 +162,7 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
         <View style={[styles.studentPill, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
           <Text style={[styles.studentName, { color: textColor }]}>{STUDENT.name}</Text>
           <Text style={[styles.studentMeta, { color: mutedColor }]}>
-            {STUDENT.regNo} • {STUDENT.dept}
+            {STUDENT.regNo} • {STUDENT.dept} • {STUDENT.semester}
           </Text>
         </View>
       </View>
@@ -182,7 +175,7 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Metric KPI Cards */}
+        {/* Metric KPI Cards (Removed monetary fines, integrated 3-Chance Rule) */}
         <View style={styles.kpiGrid}>
           <View
             style={[
@@ -215,15 +208,60 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
           <View
             style={[
               styles.kpiCard,
-              { backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderColor: '#93C5FD' },
+              { backgroundColor: isDark ? '#064E3B20' : '#ECFDF5', borderColor: '#6EE7B7' },
             ]}
           >
             <View style={styles.kpiHeader}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#2563EB' }}>₹</Text>
-              <Text style={[styles.kpiCount, { color: '#2563EB' }]}>{totalFine}</Text>
+              <ShieldCheck size={18} color="#059669" />
+              <Text style={[styles.kpiCount, { color: '#059669' }]}>
+                {usedChances}/{totalChancesAllowed}
+              </Text>
             </View>
-            <Text style={[styles.kpiLabel, { color: textColor }]}>Total Fines</Text>
-            <Text style={[styles.kpiSub, { color: mutedColor }]}>Levied / Waived</Text>
+            <Text style={[styles.kpiLabel, { color: textColor }]}>Grace Chances</Text>
+            <Text style={[styles.kpiSub, { color: '#059669', fontWeight: '700' }]}>
+              {remainingChances} Warning Left (Safe)
+            </Text>
+          </View>
+        </View>
+
+        {/* Institutional 3-Chance Grace Policy Banner */}
+        <View
+          style={[
+            styles.policyCard,
+            { backgroundColor: isDark ? '#1E293B' : '#F0FDF4', borderColor: isDark ? '#334155' : '#BBF7D0' },
+          ]}
+        >
+          <View style={styles.policyTopRow}>
+            <View style={styles.policyIconBadge}>
+              <ShieldCheck size={16} color="#059669" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={[styles.policyTitle, { color: textColor }]}>
+                3-Chance Disciplinary Policy
+              </Text>
+              <Text style={[styles.policySubtitle, { color: mutedColor }]}>
+                Institutional Academic Standing • Semester 5
+              </Text>
+            </View>
+            <View style={styles.policySafeTag}>
+              <Text style={styles.policySafeTagText}>GRACE ACTIVE</Text>
+            </View>
+          </View>
+
+          <Text style={[styles.policyDesc, { color: mutedColor }]}>
+            Under university regulations, students receive up to <Text style={{ fontWeight: '700', color: textColor }}>3 official warnings</Text> per semester across late arrivals and in-discipline activities before any disciplinary fines are levied. You have used <Text style={{ fontWeight: '700', color: textColor }}>{usedChances} of {totalChancesAllowed}</Text> chances.
+          </Text>
+
+          <View style={styles.chancePillsRow}>
+            <View style={[styles.chancePill, styles.chancePillUsed]}>
+              <Text style={styles.chancePillTextUsed}>● Chance 1: Used (ID Check)</Text>
+            </View>
+            <View style={[styles.chancePill, styles.chancePillUsed]}>
+              <Text style={styles.chancePillTextUsed}>● Chance 2: Used (Late Entry)</Text>
+            </View>
+            <View style={[styles.chancePill, styles.chancePillAvailable]}>
+              <Text style={styles.chancePillTextAvailable}>✓ Chance 3: Available (Safe)</Text>
+            </View>
           </View>
         </View>
 
@@ -298,7 +336,7 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
             Recorded Entries ({filteredRecords.length})
           </Text>
           <Text style={[styles.sectionHint, { color: mutedColor }]}>
-            Tap entry to view full details
+            Tap entry to view remarks
           </Text>
         </View>
 
@@ -361,34 +399,32 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
                 </View>
 
                 <View style={styles.locationRow}>
-                  <MapPin size={14} color={mutedColor} style={{ marginRight: 6 }} />
-                  <Text style={[styles.locationText, { color: mutedColor }]}>{rec.location}</Text>
-                  
-                  {rec.fineAmount > 0 ? (
-                    <View
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                    <MapPin size={13} color={mutedColor} style={{ marginRight: 5 }} />
+                    <Text style={[styles.locationText, { color: mutedColor }]}>{rec.location}</Text>
+                  </View>
+
+                  {/* 3-Chance Grace Badge (Replaced monetary fines) */}
+                  <View
+                    style={[
+                      styles.chanceBadge,
+                      rec.chanceStatus === 'excused' ? styles.chanceBadgeExcused : styles.chanceBadgeWarning,
+                    ]}
+                  >
+                    {rec.chanceStatus === 'excused' ? (
+                      <CheckCircle size={11} color="#059669" style={{ marginRight: 4 }} />
+                    ) : (
+                      <AlertTriangle size={11} color="#EA580C" style={{ marginRight: 4 }} />
+                    )}
+                    <Text
                       style={[
-                        styles.fineBadge,
-                        {
-                          backgroundColor:
-                            rec.fineStatus === 'Paid'
-                              ? '#ECFDF5'
-                              : '#FEF2F2',
-                        },
+                        styles.chanceBadgeText,
+                        { color: rec.chanceStatus === 'excused' ? '#059669' : '#EA580C' },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.fineBadgeText,
-                          {
-                            color:
-                              rec.fineStatus === 'Paid' ? '#059669' : '#DC2626',
-                          },
-                        ]}
-                      >
-                        ₹{rec.fineAmount} ({rec.fineStatus})
-                      </Text>
-                    </View>
-                  ) : null}
+                      {rec.chanceBadgeLabel}
+                    </Text>
+                  </View>
                 </View>
 
                 {/* Expanded Details */}
@@ -408,6 +444,16 @@ export const StudentRecordScreen = ({ colors, isDark, onBack }) => {
                     <Text style={[styles.descBody, { color: '#2563EB', fontWeight: '500' }]}>
                       {rec.actionTaken}
                     </Text>
+
+                    <Text style={[styles.descTitle, { color: textColor, marginTop: 8 }]}>
+                      Disciplinary Fine Status:
+                    </Text>
+                    <View style={styles.fineStatusRow}>
+                      <ShieldCheck size={14} color="#059669" style={{ marginRight: 5 }} />
+                      <Text style={[styles.descBody, { color: '#059669', fontWeight: '700' }]}>
+                        {rec.penaltyStatus}
+                      </Text>
+                    </View>
                   </View>
                 ) : null}
 
@@ -511,6 +557,89 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
   },
+
+  /* 3-Chance Policy Banner */
+  policyCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  policyTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  policyIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#ECFDF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  policyTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+  policySubtitle: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  policySafeTag: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  policySafeTagText: {
+    color: '#059669',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  policyDesc: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  chancePillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  chancePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  chancePillUsed: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+  },
+  chancePillTextUsed: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#EA580C',
+  },
+  chancePillAvailable: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  chancePillTextAvailable: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#059669',
+  },
+
   filterBar: {
     flexDirection: 'row',
     borderRadius: 10,
@@ -626,15 +755,29 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 12,
   },
-  fineBadge: {
+
+  /* Chance Status Badges (Replaced monetary fines) */
+  chanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 3.5,
     borderRadius: 6,
+    borderWidth: 1,
   },
-  fineBadgeText: {
+  chanceBadgeWarning: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+  },
+  chanceBadgeExcused: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  chanceBadgeText: {
     fontSize: 11,
     fontWeight: '700',
   },
+
   expandedArea: {
     borderTopWidth: 1,
     padding: 10,
@@ -650,6 +793,11 @@ const styles = StyleSheet.create({
   descBody: {
     fontSize: 12.5,
     lineHeight: 18,
+  },
+  fineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   cardFooter: {
     flexDirection: 'row',

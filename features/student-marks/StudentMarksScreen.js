@@ -217,89 +217,87 @@ export const StudentMarksScreen = ({ colors, isDark, onBack }) => {
             })}
           </ScrollView>
 
-          {/* Semester KPI Summary Banner */}
-          <View
-            style={[
-              styles.semHeroCard,
-              { backgroundColor: cardBg, borderColor: borderCol },
-            ]}
-          >
-            <View style={styles.semHeroTop}>
-              <View>
+            {/* Semester KPI Summary Banner */}
+            <View
+              style={[
+                styles.semHeroCard,
+                { backgroundColor: cardBg, borderColor: borderCol },
+              ]}
+            >
+              <View style={styles.semHeroTopStacked}>
                 <Text style={[styles.semHeroTitle, { color: textColor }]}>
                   {currentSemKey} SUBJECT PERFORMANCE
                 </Text>
                 <Text style={[styles.semHeroMeta, { color: mutedColor }]}>
                   {STUDENT.name} • Reg: {STUDENT.regNo} • {STUDENT.regulation}
                 </Text>
+                <View style={styles.allClearBadge}>
+                  <CheckCircle2 size={12} color="#059669" style={{ marginRight: 4 }} />
+                  <Text style={styles.allClearText}>ALL CLEAR</Text>
+                </View>
               </View>
-              <View style={styles.semPassBadge}>
-                <CheckCircle2 size={13} color="#059669" style={{ marginRight: 4 }} />
-                <Text style={styles.semPassText}>ALL CLEARED</Text>
+
+              <View style={[styles.semKpiRow, { borderTopColor: borderCol }]}>
+                <View style={styles.semKpiCol}>
+                  <Text style={[styles.semKpiVal, { color: '#2563EB' }]}>
+                    {semStats?.sgpa?.toFixed(2) || '8.61'}
+                  </Text>
+                  <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Semester SGPA</Text>
+                </View>
+                <View style={[styles.kpiDivider, { backgroundColor: borderCol }]} />
+
+                <View style={styles.semKpiCol}>
+                  <Text style={[styles.semKpiVal, { color: textColor }]}>
+                    {semStats?.cgpa?.toFixed(2) || '8.61'}
+                  </Text>
+                  <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Cumulative CGPA</Text>
+                </View>
+                <View style={[styles.kpiDivider, { backgroundColor: borderCol }]} />
+
+                <View style={styles.semKpiCol}>
+                  <Text style={[styles.semKpiVal, { color: '#059669' }]}>
+                    {semStats?.creditsSecured || 20} / {semStats?.totalCredits || 20}
+                  </Text>
+                  <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Credits Secured</Text>
+                </View>
               </View>
             </View>
 
-            <View style={[styles.semKpiRow, { borderTopColor: borderCol }]}>
-              <View style={styles.semKpiCol}>
-                <Text style={[styles.semKpiVal, { color: '#2563EB' }]}>
-                  {semStats?.sgpa?.toFixed(2) || '8.61'}
-                </Text>
-                <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Semester SGPA</Text>
-              </View>
-              <View style={[styles.kpiDivider, { backgroundColor: borderCol }]} />
-
-              <View style={styles.semKpiCol}>
-                <Text style={[styles.semKpiVal, { color: textColor }]}>
-                  {semStats?.cgpa?.toFixed(2) || '8.61'}
-                </Text>
-                <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Cumulative CGPA</Text>
-              </View>
-              <View style={[styles.kpiDivider, { backgroundColor: borderCol }]} />
-
-              <View style={styles.semKpiCol}>
-                <Text style={[styles.semKpiVal, { color: '#059669' }]}>
-                  {semStats?.creditsSecured || 20} / {semStats?.totalCredits || 20}
-                </Text>
-                <Text style={[styles.semKpiLabel, { color: mutedColor }]}>Credits Secured</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Section Heading & View Switcher (Cards vs Table) */}
-          <View style={styles.sectionHeaderRow}>
-            <View>
-              <Text style={[styles.sectionTitle, { color: '#166534', marginBottom: 2 }]}>
+            {/* Section Heading & View Switcher (Cards vs Table) */}
+            <View style={styles.subjectSectionBlock}>
+              <Text style={[styles.sectionTitle, { color: '#166534', marginBottom: 6 }]}>
                 SEMESTER WISE SUBJECT DETAILS
               </Text>
-              <Text style={[styles.sectionSubtitleText, { color: mutedColor }]}>
-                Showing all {subjects.length} enrolled subjects
-              </Text>
-            </View>
-
-            <View style={[styles.viewModeSwitcher, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: borderCol }]}>
-              <TouchableOpacity
-                style={[styles.viewModeBtn, subjectViewMode === 'cards' && styles.viewModeBtnActive]}
-                onPress={() => setSubjectViewMode('cards')}
-                activeOpacity={0.8}
-              >
-                <LayoutList size={14} color={subjectViewMode === 'cards' ? '#FFFFFF' : mutedColor} />
-                <Text style={[styles.viewModeBtnText, { color: subjectViewMode === 'cards' ? '#FFFFFF' : mutedColor }]}>
-                  Cards
+              <View style={styles.subjectSubHeaderRow}>
+                <Text style={[styles.sectionSubtitleText, { color: mutedColor }]}>
+                  Showing all {subjects.length} enrolled subjects
                 </Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.viewModeBtn, subjectViewMode === 'table' && styles.viewModeBtnActive]}
-                onPress={() => setSubjectViewMode('table')}
-                activeOpacity={0.8}
-              >
-                <TableIcon size={14} color={subjectViewMode === 'table' ? '#FFFFFF' : mutedColor} />
-                <Text style={[styles.viewModeBtnText, { color: subjectViewMode === 'table' ? '#FFFFFF' : mutedColor }]}>
-                  Table
-                </Text>
-              </TouchableOpacity>
+                <View style={[styles.viewModeSwitcher, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: borderCol }]}>
+                  <TouchableOpacity
+                    style={[styles.viewModeBtn, subjectViewMode === 'cards' && styles.viewModeBtnActive]}
+                    onPress={() => setSubjectViewMode('cards')}
+                    activeOpacity={0.8}
+                  >
+                    <LayoutList size={13} color={subjectViewMode === 'cards' ? '#FFFFFF' : mutedColor} />
+                    <Text style={[styles.viewModeBtnText, { color: subjectViewMode === 'cards' ? '#FFFFFF' : mutedColor }]}>
+                      Cards
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.viewModeBtn, subjectViewMode === 'table' && styles.viewModeBtnActive]}
+                    onPress={() => setSubjectViewMode('table')}
+                    activeOpacity={0.8}
+                  >
+                    <TableIcon size={13} color={subjectViewMode === 'table' ? '#FFFFFF' : mutedColor} />
+                    <Text style={[styles.viewModeBtnText, { color: subjectViewMode === 'table' ? '#FFFFFF' : mutedColor }]}>
+                      Table
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
 
           {/* MODE A: MOBILE-FIRST FULL-DETAIL CARDS (100% details visible with NO cutoff!) */}
           {subjectViewMode === 'cards' && (
@@ -536,13 +534,15 @@ export const StudentMarksScreen = ({ colors, isDark, onBack }) => {
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={[styles.studentNameText, { color: textColor }]}>{STUDENT.name}</Text>
-              <Text style={[styles.studentMetaText, { color: mutedColor }]}>
-                {STUDENT.regNo} • {STUDENT.dept} • {STUDENT.academicYear}
-              </Text>
-            </View>
-            <View style={styles.standingBadge}>
-              <ShieldCheck size={13} color="#059669" style={{ marginRight: 4 }} />
-              <Text style={styles.standingText}>REGULAR</Text>
+              <View style={styles.studentMetaInlineRow}>
+                <Text style={[styles.studentMetaText, { color: mutedColor }]}>
+                  {STUDENT.regNo} • {STUDENT.dept} • {STUDENT.academicYear}
+                </Text>
+                <View style={styles.inlineStandingBadge}>
+                  <ShieldCheck size={11} color="#059669" style={{ marginRight: 3 }} />
+                  <Text style={styles.inlineStandingText}>REGULAR</Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -595,7 +595,7 @@ export const StudentMarksScreen = ({ colors, isDark, onBack }) => {
                 <Text style={[styles.thCell, styles.colSem]}>Semester</Text>
                 <Text style={[styles.thCell, styles.colStat]}>SGPA</Text>
                 <Text style={[styles.thCell, styles.colStat]}>CGPA</Text>
-                <Text style={[styles.thCell, styles.colCredit]}>Total Cr</Text>
+                <Text style={[styles.thCell, styles.colCredit]}>Total Credits</Text>
                 <Text style={[styles.thCell, styles.colSecured]}>Secured</Text>
               </View>
 
@@ -624,8 +624,8 @@ export const StudentMarksScreen = ({ colors, isDark, onBack }) => {
                     {row.totalCredits}
                   </Text>
 
-                  <View style={[styles.tdCell, styles.colSecured, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
-                    <Text style={{ fontWeight: '600', color: textColor }}>{row.creditsSecured}</Text>
+                  <View style={[styles.tdCell, styles.colSecured, styles.securedCellWrap]}>
+                    <Text style={[styles.securedText, { color: textColor }]}>{row.creditsSecured}</Text>
                     <TouchableOpacity
                       onPress={() => setSelectedSemester(row.semester)}
                       style={styles.detailsBtn}
@@ -791,7 +791,29 @@ const styles = StyleSheet.create({
   },
   studentMetaText: {
     fontSize: 12.5,
-    marginTop: 2,
+  },
+  studentMetaInlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 3,
+  },
+  inlineStandingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  inlineStandingText: {
+    color: '#059669',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   standingBadge: {
     flexDirection: 'row',
@@ -910,17 +932,29 @@ const styles = StyleSheet.create({
   },
 
   /* Column widths for SGPA/CGPA Table */
-  colSem: { flex: 1.8, textAlign: 'left', paddingLeft: 12 },
-  colStat: { flex: 1.1 },
-  colCredit: { flex: 1.1 },
-  colSecured: { flex: 2.2, paddingRight: 8 },
+  colSem: { flex: 1.5, textAlign: 'left', paddingLeft: 10 },
+  colStat: { flex: 0.95 },
+  colCredit: { flex: 1.6 },
+  colSecured: { flex: 2.3, paddingRight: 6 },
+
+  securedCellWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  securedText: {
+    fontWeight: '700',
+    fontSize: 12.5,
+    marginRight: 4,
+  },
 
   detailsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#BFDBFE',
@@ -992,6 +1026,27 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
   },
+  semHeroTopStacked: {
+    marginBottom: 12,
+  },
+  allClearBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  allClearText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: 0.5,
+  },
   semHeroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1038,6 +1093,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  subjectSectionBlock: {
+    marginBottom: 12,
+  },
+  subjectSubHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
