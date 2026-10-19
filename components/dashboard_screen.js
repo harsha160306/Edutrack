@@ -23,6 +23,7 @@ import Svg, {
   Line,
   Pattern,
   Rect,
+  Path,
   Stop,
   LinearGradient as SvgLinearGradient,
 } from 'react-native-svg';
@@ -197,31 +198,41 @@ const getDiagonalGridWebCss = (isDark) => {
 const DASHBOARD_PATTERN_BASE_LIGHT = DASHBOARD_LIGHT_SURFACES.track;
 const DASHBOARD_PATTERN_BASE_DARK = DASHBOARD_DARK_SURFACES.canvas;
 
-/** Native-only SVG tile — one 40×40 cell matches web backgroundSize. */
-const DiagonalGridNativeLayer = ({ isDark, patternKey, style }) => {
-  if (Platform.OS === 'android') {
-    return <View style={[styles.dashboardTopPatternBg, style]} pointerEvents="none" />;
+const generateDiamondGridPath = (w = 500, h = 340, step = 22) => {
+  let d = '';
+  for (let k = -h; k <= w; k += step) {
+    const startX = k < 0 ? 0 : k;
+    const startY = k < 0 ? -k : 0;
+    const endX = (w - k <= h) ? w : h + k;
+    const endY = (w - k <= h) ? w - k : h;
+    if (startX < endX && startY < h) {
+      d += `M${startX.toFixed(1)},${startY.toFixed(1)} L${endX.toFixed(1)},${endY.toFixed(1)} `;
+    }
   }
+  for (let k = 0; k <= w + h; k += step) {
+    const startX = k > h ? k - h : 0;
+    const startY = k > h ? h : k;
+    const endX = k > w ? w : k;
+    const endY = k > w ? k - w : 0;
+    if (startX <= endX) {
+      d += `M${startX.toFixed(1)},${startY.toFixed(1)} L${endX.toFixed(1)},${endY.toFixed(1)} `;
+    }
+  }
+  return d;
+};
 
-  const lineColor = getDiagonalGridLineRgba(isDark);
-  const gridId = `diagGrid-${patternKey}`;
-  const half = DIAGONAL_GRID_SIZE / 2;
+/** Universal SVG Diamond Grid Pattern — renders crisp golden diamond lattice on iOS, Android & Web. */
+const DiagonalGridNativeLayer = ({ isDark, style }) => {
+  const { width: winW } = useWindowDimensions();
+  const width = Math.max(winW, 400);
+  const height = DASHBOARD_TOP_PATTERN_HEIGHT || 320;
+  const lineColor = isDark ? 'rgba(245, 158, 11, 0.26)' : 'rgba(217, 119, 6, 0.16)';
+  const pathData = useMemo(() => generateDiamondGridPath(width, height, 22), [width, height]);
 
   return (
     <View style={[styles.dashboardTopPatternBg, style]} pointerEvents="none">
-      <Svg style={StyleSheet.absoluteFill}>
-        <Defs>
-          <Pattern
-            id={gridId}
-            width={DIAGONAL_GRID_SIZE}
-            height={DIAGONAL_GRID_SIZE}
-            patternUnits="userSpaceOnUse"
-          >
-            <Line x1={0} y1={half} x2={half} y2={0} stroke={lineColor} strokeWidth={1} />
-            <Line x1={half} y1={DIAGONAL_GRID_SIZE} x2={DIAGONAL_GRID_SIZE} y2={half} stroke={lineColor} strokeWidth={1} />
-          </Pattern>
-        </Defs>
-        <Rect width="100%" height="100%" fill={`url(#${gridId})`} />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+        <Path d={pathData} stroke={lineColor} strokeWidth={1.2} />
       </Svg>
     </View>
   );
@@ -285,10 +296,17 @@ const MiniBarcode = ({ value = '000000000000', showDigits = false, showIdCode = 
 
 const DashboardTopPatternBlock = ({ isDark, children }) => {
   const patternBase = isDark ? DASHBOARD_PATTERN_BASE_DARK : DASHBOARD_PATTERN_BASE_LIGHT;
+  const borderCol = isDark ? 'rgba(245, 158, 11, 0.25)' : 'rgba(217, 119, 6, 0.2)';
 
   return (
     <View
-      style={[styles.dashboardTopBlock, { backgroundColor: patternBase }]}
+      style={[
+        styles.dashboardTopBlock,
+        {
+          backgroundColor: patternBase,
+          borderBottomColor: borderCol,
+        },
+      ]}
     >
       {Platform.OS === 'web'
         ? React.createElement('div', {
@@ -798,42 +816,6 @@ export const DashboardScreen = ({
   ] : [
     {
       id: 's1',
-      title: 'Late entries',
-      tag: 'STUDENT',
-      count: '3',
-      ampm: '',
-      status: 'Recorded this semester',
-      color: '#395EE1',
-      glowColor: '#EBF3FF',
-      tagBg: '#EDF2FE',
-      tagText: '#4271E8',
-      icon: <Clock color="#A0BBF6" size={26} strokeWidth={2.5} />,
-      buttonText: 'View Log',
-      iconBtn: <FileText size={16} color="#fff" strokeWidth={3} style={{ marginRight: 4 }} />,
-      onPress: () => {
-        if (typeof onOpenStudentRecord === 'function') onOpenStudentRecord();
-      },
-    },
-    {
-      id: 's2',
-      title: 'Attendance rate',
-      tag: 'CLASS',
-      count: '96%',
-      ampm: '',
-      status: 'Your current standing',
-      color: '#10B981',
-      glowColor: '#ECFDF5',
-      tagBg: '#ECFDF5',
-      tagText: '#059669',
-      icon: <UserCheck color="#6EE7B7" size={30} strokeWidth={2.5} />,
-      buttonText: 'Details',
-      iconBtn: <LayoutGrid size={16} color="#fff" strokeWidth={3} style={{ marginRight: 4 }} />,
-      onPress: () => {
-        if (typeof onOpenAttendance === 'function') onOpenAttendance();
-      },
-    },
-    {
-      id: 's3',
       title: 'New notices',
       tag: 'CAMPUS',
       count: '2',
@@ -848,6 +830,42 @@ export const DashboardScreen = ({
       iconBtn: <ChevronRight size={16} color="#fff" strokeWidth={3} style={{ marginRight: 4 }} />,
       onPress: () => {
         if (typeof onOpenStudentNotices === 'function') onOpenStudentNotices();
+      },
+    },
+    {
+      id: 's2',
+      title: 'Grace quota',
+      tag: 'POLICY',
+      count: '1',
+      ampm: '',
+      status: 'Warning grace quota (2 of 3 used)',
+      color: '#10B981',
+      glowColor: '#ECFDF5',
+      tagBg: '#ECFDF5',
+      tagText: '#059669',
+      icon: <Clock color="#6EE7B7" size={26} strokeWidth={2.5} />,
+      buttonText: 'Details',
+      iconBtn: <ChevronRight size={16} color="#fff" strokeWidth={3} style={{ marginRight: 4 }} />,
+      onPress: () => {
+        if (typeof onOpenStudentRecord === 'function') onOpenStudentRecord();
+      },
+    },
+    {
+      id: 's3',
+      title: 'Attendance rate',
+      tag: 'CLASS',
+      count: '86.4%',
+      ampm: '',
+      status: 'Eligible for semester exams',
+      color: '#395EE1',
+      glowColor: '#EBF3FF',
+      tagBg: '#EDF2FE',
+      tagText: '#4271E8',
+      icon: <UserCheck color="#A0BBF6" size={30} strokeWidth={2.5} />,
+      buttonText: 'View Log',
+      iconBtn: <FileText size={16} color="#fff" strokeWidth={3} style={{ marginRight: 4 }} />,
+      onPress: () => {
+        if (typeof onOpenAttendance === 'function') onOpenAttendance();
       },
     },
   ];
@@ -881,64 +899,26 @@ export const DashboardScreen = ({
   );
 
   const renderHeroCarousel = () => {
-    if (Platform.OS === 'web') {
-      return (
-        <Animated.ScrollView
-          ref={heroScrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToOffsets={heroSnapOffsets}
-          snapToAlignment="start"
-          disableIntervalMomentum
-          onScroll={onHeroCarouselScroll}
-          scrollEventThrottle={16}
-          style={[styles.heroList, { width: heroMetrics.itemWidth }]}
-          contentContainerStyle={styles.heroListContent}
-        >
-          {heroCards.map((item) => (
-            <View key={item.id} style={[styles.heroCarouselPage, { width: heroMetrics.itemWidth }]}>
-              {renderHeroItem({ item })}
-            </View>
-          ))}
-        </Animated.ScrollView>
-      );
-    }
-
     return (
-      <FlatList
-        ref={flatListRef}
-        data={heroCards}
-        renderItem={renderHeroItem}
+      <Animated.ScrollView
+        ref={heroScrollRef}
         horizontal
-        directionalLockEnabled
-        nestedScrollEnabled
-        style={styles.heroList}
-        contentContainerStyle={styles.heroListContent}
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
         snapToOffsets={heroSnapOffsets}
         snapToAlignment="start"
         disableIntervalMomentum
-        decelerationRate="fast"
-        showsHorizontalScrollIndicator={false}
-        getItemLayout={(_, index) => ({
-          length: heroMetrics.itemWidth,
-          offset: heroMetrics.itemWidth * index,
-          index,
-        })}
         onScroll={onHeroCarouselScroll}
-        onMomentumScrollEnd={(e) => {
-          setHeroIndex(Math.round(e.nativeEvent.contentOffset.x / heroMetrics.itemWidth));
-        }}
-        onScrollToIndexFailed={({ index }) => {
-          flatListRef.current?.scrollToOffset({
-            offset: index * heroMetrics.itemWidth,
-            animated: false,
-          });
-        }}
-        keyExtractor={(item) => item.id}
+        scrollEventThrottle={16}
         style={[styles.heroList, { width: heroMetrics.itemWidth }]}
         contentContainerStyle={styles.heroListContent}
-      />
+      >
+        {heroCards.map((item) => (
+          <View key={item.id} style={[styles.heroCarouselPage, { width: heroMetrics.itemWidth }]}>
+            {renderHeroItem({ item })}
+          </View>
+        ))}
+      </Animated.ScrollView>
     );
   };
 
@@ -946,17 +926,10 @@ export const DashboardScreen = ({
   useEffect(() => {
     const timer = setInterval(() => {
       const nextIndex = (heroIndex + 1) % heroCards.length;
-      if (Platform.OS === 'web') {
-        heroScrollRef.current?.scrollTo({
-          x: nextIndex * heroMetrics.itemWidth,
+      heroScrollRef.current?.scrollTo({
+        x: nextIndex * heroMetrics.itemWidth,
         animated: true,
-        });
-      } else {
-        flatListRef.current?.scrollToOffset({
-          offset: nextIndex * heroMetrics.itemWidth,
-          animated: true,
-        });
-      }
+      });
       setHeroIndex(nextIndex);
     }, 6000);
     return () => clearInterval(timer);
@@ -3198,6 +3171,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: 'transparent',
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
   },
   dashboardTopBlockContent: {
     position: 'relative',
