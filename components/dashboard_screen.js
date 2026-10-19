@@ -115,6 +115,7 @@ import { getAccountDisplay } from '../features/account/getAccountDisplay';
 import { generateBarcodeData } from '../features/account/barcodeGenerator.js';
 import { PullSyncGestureLayer, useReversePullSync } from '../features/reverse-pull-sync';
 import { MarkLatecomerPromptModal, ScanApprovalModeModal } from '../features/id-card-scan';
+import { ScanCategoryModal } from './ScanCategoryModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DashboardBackdrop,
@@ -505,6 +506,7 @@ export const DashboardScreen = ({
   const [activeNavTab, setActiveNavTab] = useState('home');
   const [markLatecomerModalVisible, setMarkLatecomerModalVisible] = useState(false);
   const [scanApprovalModalVisible, setScanApprovalModalVisible] = useState(false);
+  const [scanCategoryModalVisible, setScanCategoryModalVisible] = useState(false);
   const [shiftInfoVisible, setShiftInfoVisible] = useState(false);
   const { width: windowWidth } = useWindowDimensions();
   const isCompactLayout = windowWidth < COMPACT_LAYOUT_WIDTH;
@@ -1654,22 +1656,16 @@ export const DashboardScreen = ({
       if (quickActionTab === 'daily') {
         return [
           {
-            key: 'late',
-            label: 'LATE-',
-            sublabel: 'COMER',
+            key: 'scan',
+            label: 'SCAN',
+            sublabel: 'STUDENT',
             Icon: ScanLine,
             tone: '#F97316',
             bg: iconBg('#FFF7ED', '#F97316'),
-            onPress: () => onScan?.({ approvalMode: 'auto', scanType: 'latecomer' }),
-          },
-          {
-            key: 'indiscipline',
-            label: 'IN-',
-            sublabel: 'DISCIPLINE',
-            Icon: ShieldAlert,
-            tone: '#EF4444',
-            bg: iconBg('#FEF2F2', '#EF4444'),
-            onPress: () => onScan?.({ approvalMode: 'manual', scanType: 'indiscipline' }),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              setScanCategoryModalVisible(true);
+            },
           },
           {
             key: 'search',
@@ -2443,8 +2439,11 @@ export const DashboardScreen = ({
           setActiveNavTab(tabId);
         }}
         onSearchPress={openSearch}
-        onScanPress={openMarkLatecomerPrompt}
-        showScan={isFaculty}
+        onScanPress={() => {
+          if (Platform.OS !== 'web') Vibration.vibrate(30);
+          setScanCategoryModalVisible(true);
+        }}
+        showScan={false}
         noticesBadge={unreadCount > 0}
         isFaculty={isFaculty}
       />
@@ -2472,6 +2471,18 @@ export const DashboardScreen = ({
         onAutoSyncChange={handleAutoSyncChange}
         autoSyncIntervalMinutes={autoSyncIntervalMinutes}
         onAutoSyncIntervalChange={handleAutoSyncIntervalChange}
+      />
+
+      <ScanCategoryModal
+        visible={scanCategoryModalVisible}
+        isDark={isDark}
+        onClose={() => setScanCategoryModalVisible(false)}
+        onSelectLatecomer={() => {
+          onScan?.({ approvalMode: 'auto', scanType: 'latecomer' });
+        }}
+        onSelectIndiscipline={() => {
+          onScan?.({ approvalMode: 'manual', scanType: 'indiscipline' });
+        }}
       />
 
       <MarkLatecomerPromptModal
@@ -2864,7 +2875,7 @@ const GroupedButtonCard = ({ items, isDark, isCompact = false }) => {
   const iconSize = isCompact ? 54 : 60;
 
   return (
-  <View style={styles.quickActionsRow}>
+  <View style={[styles.quickActionsRow, items.length <= 3 && { justifyContent: 'space-around' }]}>
     {items.map((item) => {
       const Icon = item.Icon;
       const title = formatQuickActionLine(item.label);

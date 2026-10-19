@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   useWindowDimensions,
+  Vibration,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -57,6 +58,8 @@ export const getActionSheetBottomOffset = (bottomInset = 0) =>
 
 const FACULTY_TABS = [
   { id: 'home', label: 'Home', Icon: Home },
+  { id: 'scan', label: 'Scan', Icon: ScanLine },
+  { id: 'search', label: 'Search', Icon: Search },
   { id: 'notices', label: 'Analytics', Icon: BarChart3 },
 ];
 
@@ -66,7 +69,7 @@ const STUDENT_TABS = [
   { id: 'marks', label: 'Academic Marks', Icon: Award },
 ];
 
-const ALL_TAB_IDS = ['home', 'notices', 'attendance', 'marks'];
+const ALL_TAB_IDS = ['home', 'scan', 'search', 'notices', 'attendance', 'marks'];
 
 const SPRING = {
   tension: 112,
@@ -188,11 +191,10 @@ export const DashboardBottomNav = ({
   const segmentWidth = trackWidth > 0 ? trackWidth / tabs.length : 0;
 
   const movePillToIndex = (index, animated) => {
-    if (segmentWidth <= 0) return;
+    if (segmentWidth <= 0 || index < 0) return;
     const activeInset = isSmallMobile ? 2 : PILL_GAP;
-    const minPillWidth = !isFaculty ? 60 : (isSmallMobile ? 80 : 76);
     const left = index * segmentWidth + activeInset;
-    const width = Math.max(segmentWidth - activeInset * 2, minPillWidth);
+    const width = Math.max(segmentWidth - activeInset * 2, 40);
 
     if (!animated || !pillReady.current) {
       pillLeft.setValue(left);
@@ -253,6 +255,16 @@ export const DashboardBottomNav = ({
   }, [activeTab, segmentWidth, isSmallMobile, tabs]);
 
   const handleTabPress = (tabId) => {
+    if (tabId === 'scan') {
+      if (Platform.OS !== 'web') Vibration.vibrate(30);
+      onScanPress?.();
+      return;
+    }
+    if (tabId === 'search') {
+      if (Platform.OS !== 'web') Vibration.vibrate(30);
+      onSearchPress?.();
+      return;
+    }
     if (tabId === activeTab) return;
     onTabChange?.(tabId);
   };
@@ -332,92 +344,50 @@ export const DashboardBottomNav = ({
                   const iconColor = selected ? selectedIcon : inactive;
                   const labelColor = selected ? labelActive : inactive;
 
-                  if (!isFaculty) {
-                    return (
-                      <TouchableOpacity
-                        key={tab.id}
-                        style={styles.tabCell}
-                        onPress={() => handleTabPress(tab.id)}
-                        activeOpacity={0.85}
-                        accessibilityRole="tab"
-                        accessibilityState={{ selected }}
-                        accessibilityLabel={tab.label}
-                      >
-                        <View style={styles.verticalTabInner}>
-                          <View style={styles.verticalIconSlot}>
-                            <NavTabAnimatedIcon
-                              active={selected}
-                              variant={tab.id === 'attendance' ? 'notices' : 'home'}
-                            >
-                              <Icon
-                                size={19}
-                                color={iconColor}
-                                strokeWidth={selected ? 2.4 : isDark ? 1.85 : 2.1}
-                              />
-                            </NavTabAnimatedIcon>
-                          </View>
-                          <Text
-                            style={[
-                              styles.verticalTabLabel,
-                              {
-                                color: labelColor,
-                                fontWeight: selected ? '700' : '500',
-                              },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {tab.label}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  }
-
-                  const labelMaxWidth = labelWidth[tab.id].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 76],
-                  });
+                {tabs.map((tab) => {
+                  const selected = activeTab === tab.id;
+                  const Icon = tab.Icon;
+                  const showBadge = tab.id === 'notices' && noticesBadge;
+                  const iconColor = selected ? selectedIcon : inactive;
+                  const labelColor = selected ? labelActive : inactive;
 
                   return (
                     <TouchableOpacity
                       key={tab.id}
                       style={styles.tabCell}
                       onPress={() => handleTabPress(tab.id)}
-                      activeOpacity={0.85}
+                      activeOpacity={0.8}
                       accessibilityRole="tab"
                       accessibilityState={{ selected }}
                       accessibilityLabel={tab.label}
                     >
-                      <View style={styles.tabInner}>
-                        <View style={styles.iconSlot}>
+                      <View style={styles.verticalTabInner}>
+                        <View style={styles.verticalIconSlot}>
                           <NavTabAnimatedIcon
                             active={selected}
-                            variant={tab.id === 'notices' ? 'notices' : 'home'}
+                            variant={tab.id === 'notices' || tab.id === 'attendance' ? 'notices' : 'home'}
                           >
                             <Icon
-                              size={22}
+                              size={19}
                               color={iconColor}
-                              strokeWidth={selected ? 2.4 : isDark ? 1.85 : 2.15}
+                              strokeWidth={selected ? 2.4 : isDark ? 1.85 : 2.1}
                             />
                           </NavTabAnimatedIcon>
                           {showBadge ? <View style={styles.badge} /> : null}
                         </View>
-                        <Animated.View
+                        <Text
                           style={[
-                            styles.labelWrap,
+                            styles.verticalTabLabel,
                             {
-                              opacity: labelOpacity[tab.id],
-                              maxWidth: labelMaxWidth,
+                              color: labelColor,
+                              fontWeight: selected ? '700' : '500',
+                              fontSize: isSmallMobile && isFaculty ? 9.5 : 10.5,
                             },
                           ]}
+                          numberOfLines={1}
                         >
-                          <Text
-                            style={[styles.tabLabel, { color: labelColor }]}
-                            numberOfLines={1}
-                          >
-                            {tab.label}
-                          </Text>
-                        </Animated.View>
+                          {tab.label}
+                        </Text>
                       </View>
                     </TouchableOpacity>
                   );
@@ -427,18 +397,7 @@ export const DashboardBottomNav = ({
           </NavGlassView>
         </View>
 
-        {isFaculty ? (
-          <CircleAction
-            onPress={onSearchPress}
-            accessibilityLabel="Search"
-            isDark={isDark}
-            actionKind="search"
-          >
-            <Search size={22} color={searchIcon} strokeWidth={2.1} />
-          </CircleAction>
-        ) : null}
-
-        {showScan ? (
+        {showScan && !isFaculty ? (
           <CircleAction
             onPress={onScanPress}
             accessibilityLabel="Scan barcode"
