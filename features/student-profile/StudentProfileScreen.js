@@ -34,9 +34,6 @@ const PROFILE_DATA = {
     gender: 'Female',
     dob: '14 July 2004',
     bloodGroup: 'O +ve',
-    nationality: 'Indian',
-    motherTongue: 'Telugu',
-    govtId: 'XXXX-XXXX-8921',
   },
   academic: {
     program: 'Bachelor of Technology (B.Tech)',
@@ -312,9 +309,6 @@ export const StudentProfileScreen = ({ colors, isDark, onBack }) => {
               {renderInfoRow('Date of Birth', PROFILE_DATA.personal.dob)}
               {renderInfoRow('Gender', PROFILE_DATA.personal.gender)}
               {renderInfoRow('Blood Group', PROFILE_DATA.personal.bloodGroup)}
-              {renderInfoRow('Nationality', PROFILE_DATA.personal.nationality)}
-              {renderInfoRow('Mother Tongue', PROFILE_DATA.personal.motherTongue)}
-              {renderInfoRow('Government ID (Aadhar)', PROFILE_DATA.personal.govtId)}
             </View>
           )}
 

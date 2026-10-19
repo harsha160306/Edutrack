@@ -1215,7 +1215,18 @@ export const DashboardScreen = ({
 
   const renderAccountMenuPanel = () => (
     <>
-      <View style={[styles.accountMenuHeader, isDark && styles.accountMenuHeaderDark]}>
+      <TouchableOpacity
+        style={[styles.accountMenuHeader, isDark && styles.accountMenuHeaderDark]}
+        onPress={() => {
+          if (!isFaculty) {
+            dismissAccountMenuSheet();
+            if (typeof onOpenStudentProfile === 'function') {
+              onOpenStudentProfile();
+            }
+          }
+        }}
+        activeOpacity={!isFaculty ? 0.7 : 1}
+      >
         <ProfileAvatar
           initial={accountDisplay.initial}
           size="md"
@@ -1225,12 +1236,17 @@ export const DashboardScreen = ({
           }
         />
         <View style={styles.accountMenuMeta}>
-          <Text
-            style={[styles.accountMenuTitle, isDark && styles.textWhite]}
-            numberOfLines={1}
-          >
-            {accountDisplay.title}
-        </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text
+              style={[styles.accountMenuTitle, isDark && styles.textWhite]}
+              numberOfLines={1}
+            >
+              {accountDisplay.title}
+            </Text>
+            {!isFaculty && (
+              <ChevronRight size={16} color={isDark ? '#94A3B8' : '#64748B'} />
+            )}
+          </View>
           <Text
             style={[styles.accountMenuSubtitle, isDark && styles.textDarkMuted]}
             numberOfLines={1}
@@ -1243,8 +1259,8 @@ export const DashboardScreen = ({
           >
             {accountDisplay.email}
           </Text>
-      </View>
-    </View>
+        </View>
+      </TouchableOpacity>
       <View style={[styles.menuDivider, isDark && styles.menuDividerDark]} />
       <MenuThemeSwitcher
         value={themePreference}
@@ -1756,72 +1772,20 @@ export const DashboardScreen = ({
             },
           },
           {
-            key: 'notices',
-            label: 'VIEW',
-            sublabel: 'NOTICES',
-            Icon: FileText,
-            tone: '#3B82F6',
-            bg: iconBg('#EFF6FF', '#3B82F6'),
-            onPress: () => {
-              if (Platform.OS !== 'web') Vibration.vibrate(30);
-              if (typeof onOpenStudentNotices === 'function') {
-                onOpenStudentNotices();
-              } else {
-                Alert.alert('Notices', 'Notices will open here.');
-              }
-            },
-          },
-          {
-            key: 'profile',
+            key: 'account',
             label: 'STUDENT',
-            sublabel: 'PROFILE',
-            Icon: User,
+            sublabel: 'ACCOUNT',
+            Icon: UserCheck,
             tone: '#10B981',
             bg: iconBg('#ECFDF5', '#10B981'),
             onPress: () => {
               if (Platform.OS !== 'web') Vibration.vibrate(30);
-              if (typeof onOpenStudentProfile === 'function') {
-                onOpenStudentProfile();
-              } else {
-                Alert.alert('Profile', 'Student profile will open here.');
-              }
-            },
-          },
-          {
-            key: 'attendance',
-            label: 'ATTEND-',
-            sublabel: 'ANCE',
-            Icon: ClipboardList,
-            tone: '#8B5CF6',
-            bg: iconBg('#F5F3FF', '#8B5CF6'),
-            onPress: () => {
-              if (Platform.OS !== 'web') Vibration.vibrate(30);
-              if (typeof onOpenAttendance === 'function') {
-                onOpenAttendance();
-              } else {
-                Alert.alert('Attendance', 'Attendance will open here.');
-              }
+              setAccountMenuOpen(true);
             },
           },
         ];
       } else {
         return [
-          {
-            key: 'marks',
-            label: 'ACADEMIC',
-            sublabel: 'MARKS',
-            Icon: FileText,
-            tone: '#06B6D4',
-            bg: iconBg('#ECFEFF', '#06B6D4'),
-            onPress: () => {
-              if (Platform.OS !== 'web') Vibration.vibrate(30);
-              if (typeof onOpenMarks === 'function') {
-                onOpenMarks();
-              } else {
-                Alert.alert('Marks', 'Marks will open here.');
-              }
-            },
-          },
           {
             key: 'help',
             label: 'HELP',
@@ -1838,7 +1802,13 @@ export const DashboardScreen = ({
             Icon: Settings,
             tone: '#64748B',
             bg: iconBg('#F1F5F9', '#64748B'),
-            onPress: () => Alert.alert('Settings', 'Settings will open here.'),
+            onPress: () => {
+              if (typeof onOpenSettings === 'function') {
+                onOpenSettings();
+              } else {
+                Alert.alert('Settings', 'Settings will open here.');
+              }
+            },
           },
           {
             key: 'lock',
@@ -1967,7 +1937,11 @@ export const DashboardScreen = ({
             ]}
             onPress={() => {
               setAccountMenuOpen(false);
-              setNotificationsOpen(true);
+              if (!isFaculty && typeof onOpenStudentNotices === 'function') {
+                onOpenStudentNotices();
+              } else {
+                setNotificationsOpen(true);
+              }
             }}
             activeOpacity={0.7}
             accessibilityRole="button"
@@ -2326,11 +2300,22 @@ export const DashboardScreen = ({
       <DashboardBottomNav
         isDark={isDark}
         activeTab={activeNavTab}
-        onTabChange={setActiveNavTab}
+        onTabChange={(tabId) => {
+          if (tabId === 'attendance') {
+            if (typeof onOpenAttendance === 'function') onOpenAttendance();
+            return;
+          }
+          if (tabId === 'marks') {
+            if (typeof onOpenMarks === 'function') onOpenMarks();
+            return;
+          }
+          setActiveNavTab(tabId);
+        }}
         onSearchPress={openSearch}
         onScanPress={openMarkLatecomerPrompt}
         showScan={isFaculty}
         noticesBadge={unreadCount > 0}
+        isFaculty={isFaculty}
       />
 
       <NetworkStatusActionSheet

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, BarChart3, Search, ScanLine } from 'lucide-react-native';
+import { Home, BarChart3, Search, ScanLine, CalendarCheck, Award } from 'lucide-react-native';
 import {
   getNavChromeTokens,
   navActionPrimaryStyle,
@@ -55,10 +55,18 @@ export const ACTION_SHEET_NAV_GAP = 12;
 export const getActionSheetBottomOffset = (bottomInset = 0) =>
   getDashboardBottomNavBarHeight(bottomInset) + ACTION_SHEET_NAV_GAP;
 
-const TABS = [
+const FACULTY_TABS = [
   { id: 'home', label: 'Home', Icon: Home },
   { id: 'notices', label: 'Analytics', Icon: BarChart3 },
 ];
+
+const STUDENT_TABS = [
+  { id: 'home', label: 'Home', Icon: Home },
+  { id: 'attendance', label: 'Attendance', Icon: CalendarCheck },
+  { id: 'marks', label: 'Academic Marks', Icon: Award },
+];
+
+const ALL_TAB_IDS = ['home', 'notices', 'attendance', 'marks'];
 
 const SPRING = {
   tension: 112,
@@ -137,8 +145,11 @@ export const DashboardBottomNav = ({
   onScanPress,
   showScan = false,
   noticesBadge = false,
+  isFaculty = true,
 }) => {
   if (Platform.OS === 'web') return null;
+
+  const tabs = isFaculty ? FACULTY_TABS : STUDENT_TABS;
 
   const { width: viewportWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -161,25 +172,25 @@ export const DashboardBottomNav = ({
   const pillReady = useRef(false);
 
   const labelOpacity = useRef(
-    TABS.reduce((acc, tab) => {
-      acc[tab.id] = new Animated.Value(activeTab === tab.id ? 1 : 0);
+    ALL_TAB_IDS.reduce((acc, id) => {
+      acc[id] = new Animated.Value(activeTab === id ? 1 : 0);
       return acc;
     }, {}),
   ).current;
 
   const labelWidth = useRef(
-    TABS.reduce((acc, tab) => {
-      acc[tab.id] = new Animated.Value(activeTab === tab.id ? 1 : 0);
+    ALL_TAB_IDS.reduce((acc, id) => {
+      acc[id] = new Animated.Value(activeTab === id ? 1 : 0);
       return acc;
     }, {}),
   ).current;
 
-  const segmentWidth = trackWidth > 0 ? trackWidth / TABS.length : 0;
+  const segmentWidth = trackWidth > 0 ? trackWidth / tabs.length : 0;
 
   const movePillToIndex = (index, animated) => {
     if (segmentWidth <= 0) return;
     const activeInset = isSmallMobile ? 2 : PILL_GAP;
-    const minPillWidth = isSmallMobile ? 80 : 76;
+    const minPillWidth = !isFaculty ? 60 : (isSmallMobile ? 80 : 76);
     const left = index * segmentWidth + activeInset;
     const width = Math.max(segmentWidth - activeInset * 2, minPillWidth);
 
@@ -197,47 +208,49 @@ export const DashboardBottomNav = ({
   };
 
   const animateTabChange = (tabId) => {
-    const index = TABS.findIndex((t) => t.id === tabId);
+    const index = tabs.findIndex((t) => t.id === tabId);
     if (index < 0) return;
 
     movePillToIndex(index, true);
 
-    TABS.forEach((tab) => {
+    tabs.forEach((tab) => {
       const selected = tab.id === tabId;
-      Animated.parallel([
-        Animated.timing(labelOpacity[tab.id], {
-          toValue: selected ? 1 : 0,
-          duration: FADE_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        }),
-        Animated.timing(labelWidth[tab.id], {
-          toValue: selected ? 1 : 0,
-          duration: FADE_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        }),
-      ]).start();
+      if (labelOpacity[tab.id] && labelWidth[tab.id]) {
+        Animated.parallel([
+          Animated.timing(labelOpacity[tab.id], {
+            toValue: selected ? 1 : 0,
+            duration: FADE_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }),
+          Animated.timing(labelWidth[tab.id], {
+            toValue: selected ? 1 : 0,
+            duration: FADE_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }),
+        ]).start();
+      }
     });
   };
 
   useEffect(() => {
-    const index = TABS.findIndex((t) => t.id === activeTab);
+    const index = tabs.findIndex((t) => t.id === activeTab);
     if (index >= 0 && segmentWidth > 0) {
       if (pillReady.current) {
         animateTabChange(activeTab);
       } else {
         movePillToIndex(index, false);
-        TABS.forEach((tab) => {
+        tabs.forEach((tab) => {
           const selected = tab.id === activeTab;
-          labelOpacity[tab.id].setValue(selected ? 1 : 0);
-          labelWidth[tab.id].setValue(selected ? 1 : 0);
+          labelOpacity[tab.id]?.setValue(selected ? 1 : 0);
+          labelWidth[tab.id]?.setValue(selected ? 1 : 0);
         });
         pillReady.current = true;
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, segmentWidth, isSmallMobile]);
+  }, [activeTab, segmentWidth, isSmallMobile, tabs]);
 
   const handleTabPress = (tabId) => {
     if (tabId === activeTab) return;
@@ -312,7 +325,7 @@ export const DashboardBottomNav = ({
                   />
                 ) : null}
 
-                {TABS.map((tab) => {
+                {tabs.map((tab) => {
                   const selected = activeTab === tab.id;
                   const Icon = tab.Icon;
                   const showBadge = tab.id === 'notices' && noticesBadge;
@@ -320,7 +333,7 @@ export const DashboardBottomNav = ({
                   const labelColor = selected ? labelActive : inactive;
                   const labelMaxWidth = labelWidth[tab.id].interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, 76],
+                    outputRange: [0, !isFaculty ? 96 : 76],
                   });
 
                   return (
