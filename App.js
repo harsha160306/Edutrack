@@ -623,6 +623,8 @@ export default function App() {
               colors={colors}
               isDark={isDark}
               onBack={() => setAppState('dashboard')}
+              onOpenSettings={() => setAppState('settings')}
+              onLockApp={handleLockApp}
             />
           </View>
         )}

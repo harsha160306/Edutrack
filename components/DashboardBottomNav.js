@@ -331,9 +331,51 @@ export const DashboardBottomNav = ({
                   const showBadge = tab.id === 'notices' && noticesBadge;
                   const iconColor = selected ? selectedIcon : inactive;
                   const labelColor = selected ? labelActive : inactive;
+
+                  if (!isFaculty) {
+                    return (
+                      <TouchableOpacity
+                        key={tab.id}
+                        style={styles.tabCell}
+                        onPress={() => handleTabPress(tab.id)}
+                        activeOpacity={0.85}
+                        accessibilityRole="tab"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={tab.label}
+                      >
+                        <View style={styles.verticalTabInner}>
+                          <View style={styles.verticalIconSlot}>
+                            <NavTabAnimatedIcon
+                              active={selected}
+                              variant={tab.id === 'attendance' ? 'notices' : 'home'}
+                            >
+                              <Icon
+                                size={19}
+                                color={iconColor}
+                                strokeWidth={selected ? 2.4 : isDark ? 1.85 : 2.1}
+                              />
+                            </NavTabAnimatedIcon>
+                          </View>
+                          <Text
+                            style={[
+                              styles.verticalTabLabel,
+                              {
+                                color: labelColor,
+                                fontWeight: selected ? '700' : '500',
+                              },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {tab.label}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }
+
                   const labelMaxWidth = labelWidth[tab.id].interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, !isFaculty ? 96 : 76],
+                    outputRange: [0, 76],
                   });
 
                   return (
@@ -385,14 +427,16 @@ export const DashboardBottomNav = ({
           </NavGlassView>
         </View>
 
-        <CircleAction
-          onPress={onSearchPress}
-          accessibilityLabel="Search"
-          isDark={isDark}
-          actionKind="search"
-        >
-          <Search size={22} color={searchIcon} strokeWidth={2.1} />
-        </CircleAction>
+        {isFaculty ? (
+          <CircleAction
+            onPress={onSearchPress}
+            accessibilityLabel="Search"
+            isDark={isDark}
+            actionKind="search"
+          >
+            <Search size={22} color={searchIcon} strokeWidth={2.1} />
+          </CircleAction>
+        ) : null}
 
         {showScan ? (
           <CircleAction
@@ -528,5 +572,24 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#ffffff',
     zIndex: 2,
+  },
+  verticalTabInner: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  verticalIconSlot: {
+    width: 24,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  verticalTabLabel: {
+    fontSize: 10.5,
+    letterSpacing: -0.2,
+    textAlign: 'center',
   },
 });

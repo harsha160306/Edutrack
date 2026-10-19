@@ -54,6 +54,8 @@ import {
   History,
   WifiOff,
   ShieldAlert,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react-native';
 import {
   useMpinSetupStatus,
@@ -522,6 +524,10 @@ export const DashboardScreen = ({
     autoSyncIntervalMinutes,
   );
   const studentFines = useStudentDisciplineFines(!isFaculty);
+  const textColor = isDark ? '#F8FAFC' : '#0F172A';
+  const mutedColor = isDark ? '#94A3B8' : '#64748B';
+  const cardBg = isDark ? '#1E293B' : '#FFFFFF';
+  const borderCol = isDark ? '#334155' : '#E2E8F0';
   const { status: networkStatus, connectionKind } = useNetworkStatus();
   const postLoginSyncProcessedRef = useRef(0);
   const facultyRefreshRef = useRef(facultySync.refresh);
@@ -2103,15 +2109,15 @@ export const DashboardScreen = ({
         {/* Main Dashboard Grid for Web */}
         <View style={Platform.OS === 'web' ? styles.webDashboardGrid : null}>
           
-          {/* Left Column: Quick Actions */}
+          {/* Left Column */}
           <View style={Platform.OS === 'web' ? styles.webGridColLeft : null}>
-            {/* Quick Actions Grid matching Image 2 */}
-            <View style={[styles.section, isCompactLayout && styles.sectionCompact]}>
-              <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, isDark && styles.textWhite]}>QUICK ACTIONS</Text>
-              </View>
-              
-              {isFaculty ? (
+            {isFaculty ? (
+              /* Faculty Quick Actions Grid */
+              <View style={[styles.section, isCompactLayout && styles.sectionCompact]}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, isDark && styles.textWhite]}>QUICK ACTIONS</Text>
+                </View>
+                
                 <View
                   style={[
                     styles.quickActionsSwitcherRowCompact,
@@ -2164,24 +2170,90 @@ export const DashboardScreen = ({
                     );
                   })}
                 </View>
-              ) : (
-                <SegmentListSwitcher
-                  options={quickActionSwitcherOptions}
-                  activeTab={quickActionTab}
-                  onChange={setQuickActionTab}
-                  isDark={isDark}
-                />
-              )}
 
-              <GroupedButtonCard
-                items={quickActionButtons}
-                isDark={isDark}
-                isCompact={isCompactLayout}
-              />
-            </View>
+                <GroupedButtonCard
+                  items={quickActionButtons}
+                  isDark={isDark}
+                  isCompact={isCompactLayout}
+                />
+              </View>
+            ) : (
+              /* Student: My Record & Discipline Standing Card */
+              <View style={[styles.section, isCompactLayout && styles.sectionCompact]}>
+                <View style={[styles.studentDashboardCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
+                  <View style={styles.studentCardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.studentCardTitle, { color: textColor }]}>
+                        MY RECORD & DISCIPLINE STANDING
+                      </Text>
+                      <Text style={[styles.studentCardSubtitle, { color: mutedColor }]}>
+                        Institutional 3-chance warning quota & fines status
+                      </Text>
+                    </View>
+                    <View style={styles.studentGraceBadge}>
+                      <ShieldCheck size={13} color="#059669" style={{ marginRight: 4 }} />
+                      <Text style={styles.studentGraceBadgeText}>3-Chance Policy</Text>
+                    </View>
+                  </View>
+
+                  {/* Grace Chances Progress Bar / Indicators */}
+                  <View style={[styles.graceStatusBox, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: borderCol }]}>
+                    <View style={styles.graceHeaderRow}>
+                      <Text style={[styles.graceLabel, { color: textColor }]}>Grace Chances Standing</Text>
+                      <Text style={[styles.graceValue, { color: '#D97706' }]}>2 of 3 Used • 1 Available</Text>
+                    </View>
+                    <View style={styles.chancePillsRow}>
+                      <View style={[styles.chancePill, styles.chancePillUsed]}>
+                        <Text style={styles.chancePillTextUsed}>Chance 1: Used (Oct 14)</Text>
+                      </View>
+                      <View style={[styles.chancePill, styles.chancePillUsed]}>
+                        <Text style={styles.chancePillTextUsed}>Chance 2: Used (Sep 28)</Text>
+                      </View>
+                      <View style={[styles.chancePill, styles.chancePillAvailable]}>
+                        <Text style={styles.chancePillTextAvailable}>Chance 3: Safe / Free</Text>
+                      </View>
+                    </View>
+                    <View style={styles.standingSummaryRow}>
+                      <CheckCircle2 size={13} color="#059669" style={{ marginRight: 5 }} />
+                      <Text style={styles.standingSummaryText}>
+                        Current Standing: Safe (Zero Monetary Fines)
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Fines summary counter */}
+                  <View style={[styles.finesMetricsRow, { borderTopColor: borderCol, borderBottomColor: borderCol }]}>
+                    <View style={styles.fineMetricCell}>
+                      <Text style={[styles.fineMetricVal, { color: '#059669' }]}>₹0.00</Text>
+                      <Text style={[styles.fineMetricLabel, { color: mutedColor }]}>Discipline Fines Due</Text>
+                    </View>
+                    <View style={[styles.fineDivider, { backgroundColor: borderCol }]} />
+                    <View style={styles.fineMetricCell}>
+                      <Text style={[styles.fineMetricVal, { color: textColor }]}>2</Text>
+                      <Text style={[styles.fineMetricLabel, { color: mutedColor }]}>Late/Dress Warnings</Text>
+                    </View>
+                    <View style={[styles.fineDivider, { backgroundColor: borderCol }]} />
+                    <View style={styles.fineMetricCell}>
+                      <Text style={[styles.fineMetricVal, { color: '#2563EB' }]}>Eligible</Text>
+                      <Text style={[styles.fineMetricLabel, { color: mutedColor }]}>Exam Clearance</Text>
+                    </View>
+                  </View>
+
+                  {/* Button to View Full Disciplinary Record */}
+                  <TouchableOpacity
+                    style={styles.openRecordBtn}
+                    onPress={onOpenStudentRecord}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.openRecordBtnText}>View Full Disciplinary Record</Text>
+                    <ChevronRight size={16} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
 
-          {/* Right Column: Recent Activity & Student Fines */}
+          {/* Right Column: Recent Activity & Student Notices */}
           <View style={Platform.OS === 'web' ? styles.webGridColRight : null}>
             {/* Recent Activity Section (Faculty Only - In-discipline & Latecomers feed) */}
             {isFaculty ? (
@@ -2276,18 +2348,104 @@ export const DashboardScreen = ({
                   </View>
                 )}
               </View>
-            ) : null}
+            ) : (
+              /* Student: Campus & Academic Notifications Card */
+              <View style={[styles.section, isCompactLayout && styles.sectionCompact, Platform.OS !== 'web' && { marginTop: 16 }]}>
+                <View style={[styles.studentDashboardCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
+                  <View style={styles.studentCardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.studentCardTitle, { color: textColor }]}>
+                        CAMPUS & ACADEMIC NOTICES
+                      </Text>
+                      <Text style={[styles.studentCardSubtitle, { color: mutedColor }]}>
+                        Official institutional updates & timetable circulars
+                      </Text>
+                    </View>
+                    <View style={[styles.studentGraceBadge, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                      <Bell size={12} color="#2563EB" style={{ marginRight: 4 }} />
+                      <Text style={[styles.studentGraceBadgeText, { color: '#2563EB' }]}>4 New</Text>
+                    </View>
+                  </View>
 
-            {!isFaculty ? (
-              <View style={[styles.section, isCompactLayout && styles.sectionCompact, { marginTop: 24 }]}>
-                <StudentDisciplineFinesCard
-                  colors={colors}
-                  fines={studentFines.fines}
-                  loading={studentFines.loading}
-                  error={studentFines.error}
-                />
+                  {/* Notices list */}
+                  <View style={styles.noticesList}>
+                    {[
+                      {
+                        id: 'n1',
+                        tag: 'EXAMS',
+                        tagColor: '#2563EB',
+                        tagBg: isDark ? 'rgba(37, 99, 235, 0.2)' : '#EFF6FF',
+                        title: 'B.Tech III-I CSE Mid-1 Examination Timetable',
+                        desc: 'Examinations commence from Oct 27, 2026. Hall tickets available in Academic Cell.',
+                        date: 'Today, 10:30 AM',
+                      },
+                      {
+                        id: 'n2',
+                        tag: 'CAMPUS',
+                        tagColor: '#059669',
+                        tagBg: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5',
+                        title: 'MIC InnoVision 2026 Registrations Open',
+                        desc: 'Inter-college hackathon with cash pool ₹1,00,000. Project submissions open.',
+                        date: 'Yesterday, 04:15 PM',
+                      },
+                      {
+                        id: 'n3',
+                        tag: 'TRANSIT',
+                        tagColor: '#D97706',
+                        tagBg: isDark ? 'rgba(217, 119, 6, 0.2)' : '#FFFBEB',
+                        title: 'Route #12 Benz Circle Schedule Adjustment',
+                        desc: 'Morning bus pickup advanced by 10 mins due to highway maintenance.',
+                        date: '17 Oct 2026',
+                      },
+                      {
+                        id: 'n4',
+                        tag: 'ACADEMIC',
+                        tagColor: '#7C3AED',
+                        tagBg: isDark ? 'rgba(124, 58, 237, 0.2)' : '#F5F3FF',
+                        title: 'Mandatory 75% Attendance Compliance',
+                        desc: 'Students with attendance below 75% aggregate must consult department counselor.',
+                        date: '15 Oct 2026',
+                      },
+                    ].map((notice, idx) => (
+                      <TouchableOpacity
+                        key={notice.id}
+                        style={[
+                          styles.noticeRow,
+                          idx > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: borderCol },
+                        ]}
+                        activeOpacity={0.7}
+                        onPress={onOpenStudentNotices}
+                      >
+                        <View style={styles.noticeRowTop}>
+                          <View style={[styles.noticeTag, { backgroundColor: notice.tagBg }]}>
+                            <Text style={[styles.noticeTagText, { color: notice.tagColor }]}>{notice.tag}</Text>
+                          </View>
+                          <Text style={[styles.noticeDate, { color: mutedColor }]}>{notice.date}</Text>
+                        </View>
+                        <Text style={[styles.noticeTitle, { color: textColor }]} numberOfLines={1}>
+                          {notice.title}
+                        </Text>
+                        <Text style={[styles.noticeDesc, { color: mutedColor }]} numberOfLines={2}>
+                          {notice.desc}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Button to View All Notices */}
+                  <TouchableOpacity
+                    style={[styles.viewAllNoticesBtn, { borderColor: borderCol }]}
+                    onPress={onOpenStudentNotices}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.viewAllNoticesBtnText, { color: '#2563EB' }]}>
+                      View All Institutional Notices (4)
+                    </Text>
+                    <ChevronRight size={16} color="#2563EB" />
+                  </TouchableOpacity>
+                </View>
               </View>
-            ) : null}
+            )}
           </View>
         </View>
         </View>
@@ -4450,5 +4608,201 @@ const styles = StyleSheet.create({
   textDarkTitle: { color: '#CBD5E1' },
   textDark: { color: '#94A3B8' },
   textDarkMuted: { color: '#94A3B8' },
+
+  studentDashboardCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  studentCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    gap: 8,
+  },
+  studentCardTitle: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  studentCardSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  studentGraceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+  },
+  studentGraceBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: 0.3,
+  },
+  graceStatusBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 14,
+  },
+  graceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  graceLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  graceValue: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  chancePillsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 8,
+  },
+  chancePill: {
+    flex: 1,
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chancePillUsed: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  chancePillTextUsed: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  chancePillAvailable: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  chancePillTextAvailable: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  standingSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  standingSummaryText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  finesMetricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 12,
+    marginBottom: 14,
+  },
+  fineMetricCell: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  fineMetricVal: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  fineMetricLabel: {
+    fontSize: 10.5,
+    fontWeight: '500',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  fineDivider: {
+    width: 1,
+    height: 24,
+  },
+  openRecordBtn: {
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  openRecordBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  noticesList: {
+    marginBottom: 12,
+  },
+  noticeRow: {
+    paddingVertical: 11,
+  },
+  noticeRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  noticeTag: {
+    paddingHorizontal: 6.5,
+    paddingVertical: 2.5,
+    borderRadius: 4,
+  },
+  noticeTagText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  noticeDate: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  noticeTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  noticeDesc: {
+    fontSize: 11.5,
+    lineHeight: 16,
+  },
+  viewAllNoticesBtn: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  viewAllNoticesBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });
 

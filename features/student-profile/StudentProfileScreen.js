@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   ArrowLeft,
@@ -19,11 +21,16 @@ import {
   ShieldCheck,
   Award,
   BookOpen,
-  Users,
-  Bus,
   Copy,
   CheckCircle,
   ExternalLink,
+  Menu,
+  Settings,
+  Lock,
+  HelpCircle,
+  X,
+  ChevronRight,
+  Headphones,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -61,27 +68,20 @@ const PROFILE_DATA = {
     currentAddress: 'Flat 302, Sri Sai Nilayam, Beside MIC Campus, Kanchikacherla, AP - 521180',
     permanentAddress: 'D.No: 4-12/1, Benz Circle, Vijayawada, Krishna District, AP - 520001',
   },
-  parents: {
-    fatherName: 'P. Venkata Rao',
-    fatherOccupation: 'Business & Agriculture',
-    fatherContact: '+91 98480 12345',
-    motherName: 'P. Lakshmi',
-    motherOccupation: 'Homemaker',
-  },
-  campus: {
-    commuteMode: 'College Bus Service',
-    busRoute: 'Route #12 (Benz Circle to Campus)',
-    busPassId: 'BP-2025-0982',
-    libraryId: 'LIB-CSE-22H71A05A1',
-    biometricId: 'BIO-05A1 (Enrolled & Active)',
-    idCardValidity: 'Valid through June 2026',
-  },
 };
 
-export const StudentProfileScreen = ({ colors, isDark, onBack }) => {
+export const StudentProfileScreen = ({
+  colors,
+  isDark,
+  onBack,
+  onOpenSettings,
+  onLockApp,
+}) => {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState('academic'); // 'academic' | 'personal' | 'contact' | 'parents' | 'campus'
+  const [activeTab, setActiveTab] = useState('academic'); // 'academic' | 'personal' | 'contact'
   const [copiedKey, setCopiedKey] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
 
   const textColor = isDark ? '#F8FAFC' : '#0F172A';
   const mutedColor = isDark ? '#94A3B8' : '#64748B';
@@ -137,11 +137,19 @@ export const StudentProfileScreen = ({ colors, isDark, onBack }) => {
         ]}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Back">
             <ArrowLeft color={textColor} size={22} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: textColor }]}>Student Profile</Text>
-          <View style={{ width: 36 }} />
+          <TouchableOpacity
+            onPress={() => setMenuVisible(true)}
+            style={styles.menuBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Open options menu"
+          >
+            <Menu color={textColor} size={22} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -242,8 +250,6 @@ export const StudentProfileScreen = ({ colors, isDark, onBack }) => {
             { id: 'academic', label: 'Academic', Icon: GraduationCap },
             { id: 'personal', label: 'Personal', Icon: User },
             { id: 'contact', label: 'Contact', Icon: Mail },
-            { id: 'parents', label: 'Parents', Icon: Users },
-            { id: 'campus', label: 'Campus & Transit', Icon: Bus },
           ].map((tab) => {
             const isSelected = activeTab === tab.id;
             const TabIcon = tab.Icon;
@@ -329,43 +335,162 @@ export const StudentProfileScreen = ({ colors, isDark, onBack }) => {
               {renderInfoRow('Permanent Residence', PROFILE_DATA.contact.permanentAddress)}
             </View>
           )}
-
-          {activeTab === 'parents' && (
-            <View>
-              <View style={styles.cardHeaderWithIcon}>
-                <Users size={18} color="#2563EB" style={{ marginRight: 8 }} />
-                <Text style={[styles.cardHeaderTitle, { color: textColor }]}>
-                  Parent & Guardian Information
-                </Text>
-              </View>
-
-              {renderInfoRow("Father's Name", PROFILE_DATA.parents.fatherName)}
-              {renderInfoRow("Father's Occupation", PROFILE_DATA.parents.fatherOccupation)}
-              {renderInfoRow("Father's Contact", PROFILE_DATA.parents.fatherContact, 'fatherPhone')}
-              {renderInfoRow("Mother's Name", PROFILE_DATA.parents.motherName)}
-              {renderInfoRow("Mother's Occupation", PROFILE_DATA.parents.motherOccupation)}
-            </View>
-          )}
-
-          {activeTab === 'campus' && (
-            <View>
-              <View style={styles.cardHeaderWithIcon}>
-                <Bus size={18} color="#2563EB" style={{ marginRight: 8 }} />
-                <Text style={[styles.cardHeaderTitle, { color: textColor }]}>
-                  Campus Transport & Facility Information
-                </Text>
-              </View>
-
-              {renderInfoRow('Mode of Commute', PROFILE_DATA.campus.commuteMode)}
-              {renderInfoRow('Bus Route & Stop', PROFILE_DATA.campus.busRoute)}
-              {renderInfoRow('Bus Pass ID', PROFILE_DATA.campus.busPassId, 'busPass')}
-              {renderInfoRow('Library Membership ID', PROFILE_DATA.campus.libraryId, 'libId')}
-              {renderInfoRow('Biometric Attendance Punch ID', PROFILE_DATA.campus.biometricId)}
-              {renderInfoRow('Digital ID Validity', PROFILE_DATA.campus.idCardValidity)}
-            </View>
-          )}
         </View>
       </ScrollView>
+
+      {/* 3-Lines Options Modal (Help center, App settings, Lock App) */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.menuSheet, { backgroundColor: cardBg, borderColor: borderCol }]}>
+                <View style={styles.menuSheetHeader}>
+                  <Text style={[styles.menuSheetTitle, { color: textColor }]}>Student Profile Options</Text>
+                  <TouchableOpacity
+                    onPress={() => setMenuVisible(false)}
+                    style={styles.closeBtn}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <X size={20} color={mutedColor} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Option 1: Help center */}
+                <TouchableOpacity
+                  style={[styles.menuOptionRow, { borderBottomColor: borderCol }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMenuVisible(false);
+                    setTimeout(() => setHelpModalVisible(true), 150);
+                  }}
+                >
+                  <View style={[styles.menuOptionIconWrap, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EFF6FF' }]}>
+                    <HelpCircle size={20} color="#2563EB" />
+                  </View>
+                  <View style={styles.menuOptionTextWrap}>
+                    <Text style={[styles.menuOptionTitle, { color: textColor }]}>Help center</Text>
+                    <Text style={[styles.menuOptionSub, { color: mutedColor }]}>
+                      Academic counselor & institutional support
+                    </Text>
+                  </View>
+                  <ChevronRight size={18} color={mutedColor} />
+                </TouchableOpacity>
+
+                {/* Option 2: App settings */}
+                <TouchableOpacity
+                  style={[styles.menuOptionRow, { borderBottomColor: borderCol }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMenuVisible(false);
+                    onOpenSettings?.();
+                  }}
+                >
+                  <View style={[styles.menuOptionIconWrap, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.18)' : '#ECFDF5' }]}>
+                    <Settings size={20} color="#059669" />
+                  </View>
+                  <View style={styles.menuOptionTextWrap}>
+                    <Text style={[styles.menuOptionTitle, { color: textColor }]}>App settings</Text>
+                    <Text style={[styles.menuOptionSub, { color: mutedColor }]}>
+                      Theme, notifications & security
+                    </Text>
+                  </View>
+                  <ChevronRight size={18} color={mutedColor} />
+                </TouchableOpacity>
+
+                {/* Option 3: Lock App */}
+                <TouchableOpacity
+                  style={styles.menuOptionRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMenuVisible(false);
+                    onLockApp?.();
+                  }}
+                >
+                  <View style={[styles.menuOptionIconWrap, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2' }]}>
+                    <Lock size={20} color="#DC2626" />
+                  </View>
+                  <View style={styles.menuOptionTextWrap}>
+                    <Text style={[styles.menuOptionTitle, { color: '#DC2626' }]}>Lock App</Text>
+                    <Text style={[styles.menuOptionSub, { color: mutedColor }]}>
+                      Lock screen with MPIN / Biometric
+                    </Text>
+                  </View>
+                  <ChevronRight size={18} color={mutedColor} />
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Help Center Details Modal */}
+      <Modal
+        visible={helpModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setHelpModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setHelpModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.helpModalCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
+                <View style={styles.helpHeaderRow}>
+                  <View style={styles.helpIconCircle}>
+                    <Headphones size={20} color="#2563EB" />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={[styles.helpHeaderTitle, { color: textColor }]}>Student Help Center</Text>
+                    <Text style={[styles.helpHeaderSub, { color: mutedColor }]}>
+                      MIC College of Technology Support
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setHelpModalVisible(false)}
+                    style={styles.closeBtn}
+                  >
+                    <X size={18} color={mutedColor} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={[styles.helpItemBox, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: borderCol }]}>
+                  <Text style={[styles.helpSectionLabel, { color: '#2563EB' }]}>ACADEMIC COUNSELOR</Text>
+                  <Text style={[styles.helpNameText, { color: textColor }]}>Dr. K. V. Raman</Text>
+                  <Text style={[styles.helpDetailText, { color: mutedColor }]}>
+                    Associate Professor, CSE • Room #304, CSE Block
+                  </Text>
+                  <Text style={[styles.helpContactText, { color: textColor }]}>
+                    Email: raman.kv@mic.edu • Ph: +91 866-2490001
+                  </Text>
+                </View>
+
+                <View style={[styles.helpItemBox, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: borderCol }]}>
+                  <Text style={[styles.helpSectionLabel, { color: '#059669' }]}>EXAMINATION & GRIEVANCE CELL</Text>
+                  <Text style={[styles.helpNameText, { color: textColor }]}>Administrative Block A-102</Text>
+                  <Text style={[styles.helpDetailText, { color: mutedColor }]}>
+                    Hours: Mon-Sat, 9:00 AM – 4:30 PM
+                  </Text>
+                  <Text style={[styles.helpContactText, { color: textColor }]}>
+                    Email: examcell@mic.edu • Helpline: 1800-425-3333
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.helpCloseFullBtn}
+                  onPress={() => setHelpModalVisible(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.helpCloseFullBtnText}>Close Help Center</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
@@ -570,5 +695,144 @@ const styles = StyleSheet.create({
   copyBtn: {
     marginLeft: 8,
     padding: 4,
+  },
+  menuBtn: {
+    padding: 6,
+    borderRadius: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  menuSheet: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  menuSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(148, 163, 184, 0.25)',
+    marginBottom: 8,
+  },
+  menuSheetTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  closeBtn: {
+    padding: 4,
+    borderRadius: 14,
+  },
+  menuOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  menuOptionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  menuOptionTextWrap: {
+    flex: 1,
+  },
+  menuOptionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  menuOptionSub: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  helpModalCard: {
+    width: '100%',
+    maxWidth: 460,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+  helpHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(148, 163, 184, 0.25)',
+  },
+  helpIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  helpHeaderTitle: {
+    fontSize: 16.5,
+    fontWeight: '800',
+  },
+  helpHeaderSub: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  helpItemBox: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 12,
+  },
+  helpSectionLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  helpNameText: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  helpDetailText: {
+    fontSize: 12.5,
+    marginBottom: 4,
+  },
+  helpContactText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  helpCloseFullBtn: {
+    backgroundColor: '#2563EB',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  helpCloseFullBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
