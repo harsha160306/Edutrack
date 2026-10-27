@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MICFacultyApp",
-    "slug": "MICFacultyApp",
+    "name": "MIC EduTrack",
+    "slug": "mic-edutrack",
     "version": "1.0.0",
     "extra": {
       "buildNumber": "20260503.1",
@@ -30,13 +30,13 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow MIC Faculty to unlock the app with Face ID."
+          "faceIDPermission": "Allow MIC EduTrack to unlock the app with Face ID."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow MIC Faculty to scan student ID cards.",
+          "cameraPermission": "Allow MIC EduTrack to scan student ID cards.",
           "recordAudioAndroid": false
         }
       ],
@@ -46,6 +46,15 @@
           "android": {
             "usesCleartextTraffic": true
           }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-edutrack.png",
+          "imageWidth": 260,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
         }
       ]
     ]

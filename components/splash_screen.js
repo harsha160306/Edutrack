@@ -176,8 +176,18 @@ export const BrandCopy = ({ colors, compact = false }) => {
       ]}
       allowFontScaling={false}
     >
-      <Text style={{ color: colors.text }}>DISCIPLINE </Text>
-      <Text style={{ color: colors.primary }}>COMMITTEE</Text>
+      <Text style={{ color: colors.text }}>MIC </Text>
+      <Text style={{ color: colors.primary }}>EduTrack</Text>
+    </Text>
+    <Text
+      style={[
+        styles.subtitleLine,
+        compact && styles.subtitleLineCompact,
+        { color: colors.textMuted },
+      ]}
+      allowFontScaling={false}
+    >
+      DISCIPLINE & ACADEMIC PORTAL
     </Text>
   </View>
   );
@@ -357,6 +367,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     letterSpacing: 0.75,
+  },
+  subtitleLine: {
+    marginTop: 4,
+    fontFamily: BRAND_SANS_FONT,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+  subtitleLineCompact: {
+    marginTop: 2,
+    fontSize: 9.5,
+    letterSpacing: 0.8,
   },
   footerBlock: {
     paddingHorizontal: 28,

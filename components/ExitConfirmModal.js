@@ -6,7 +6,7 @@ export const ExitConfirmModal = ({ visible, colors, isDark = true, onCancel, onC
   <AppleAlertModal
     visible={visible}
     title="Exit app?"
-    message="Do you want to exit MIC Faculty App?"
+    message="Do you want to exit MIC EduTrack?"
     colors={colors}
     isDark={isDark}
     blurBackground
