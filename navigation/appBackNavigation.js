@@ -25,6 +25,8 @@ export const getAppBackTarget = (appState, context = {}) => {
     case 'student-record':
     case 'student-notices':
     case 'student-profile':
+    case 'faculty-notices':
+    case 'faculty-profile':
     case 'settings':
       return 'dashboard';
     case 'mpin-change-verify':

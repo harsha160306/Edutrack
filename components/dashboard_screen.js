@@ -490,6 +490,8 @@ export const DashboardScreen = ({
   onOpenStudentRecord,
   onOpenStudentNotices,
   onOpenStudentProfile,
+  onOpenFacultyNotices,
+  onOpenFacultyProfile,
   themePreference = 'system',
   onThemePreferenceChange,
 }) => {
@@ -1199,14 +1201,14 @@ export const DashboardScreen = ({
       <TouchableOpacity
         style={[styles.accountMenuHeader, isDark && styles.accountMenuHeaderDark]}
         onPress={() => {
-          if (!isFaculty) {
-            dismissAccountMenuSheet();
-            if (typeof onOpenStudentProfile === 'function') {
-              onOpenStudentProfile();
-            }
+          dismissAccountMenuSheet();
+          if (!isFaculty && typeof onOpenStudentProfile === 'function') {
+            onOpenStudentProfile();
+          } else if (isFaculty && typeof onOpenFacultyProfile === 'function') {
+            onOpenFacultyProfile();
           }
         }}
-        activeOpacity={!isFaculty ? 0.7 : 1}
+        activeOpacity={0.7}
       >
         <ProfileAvatar
           initial={accountDisplay.initial}
@@ -1224,9 +1226,7 @@ export const DashboardScreen = ({
             >
               {accountDisplay.title}
             </Text>
-            {!isFaculty && (
-              <ChevronRight size={16} color={isDark ? '#94A3B8' : '#64748B'} />
-            )}
+            <ChevronRight size={16} color={isDark ? '#94A3B8' : '#64748B'} />
           </View>
           <Text
             style={[styles.accountMenuSubtitle, isDark && styles.textDarkMuted]}
@@ -1914,6 +1914,8 @@ export const DashboardScreen = ({
               setAccountMenuOpen(false);
               if (!isFaculty && typeof onOpenStudentNotices === 'function') {
                 onOpenStudentNotices();
+              } else if (isFaculty && typeof onOpenFacultyNotices === 'function') {
+                onOpenFacultyNotices();
               } else {
                 setNotificationsOpen(true);
               }

@@ -32,6 +32,8 @@ import { StudentMarksScreen } from './features/student-marks/StudentMarksScreen'
 import { StudentRecordScreen } from './features/student-record/StudentRecordScreen';
 import { StudentNoticesScreen } from './features/student-notices/StudentNoticesScreen';
 import { StudentProfileScreen } from './features/student-profile/StudentProfileScreen';
+import { FacultyNoticesScreen } from './features/faculty-notices/FacultyNoticesScreen';
+import { FacultyProfileScreen } from './features/faculty-profile/FacultyProfileScreen';
 import {
   MarkedLatecomersScreen,
   LatecomerHistoryScreen,
@@ -538,6 +540,8 @@ export default function App() {
               onOpenStudentRecord={() => setAppState('student-record')}
               onOpenStudentNotices={() => setAppState('student-notices')}
               onOpenStudentProfile={() => setAppState('student-profile')}
+              onOpenFacultyNotices={() => setAppState('faculty-notices')}
+              onOpenFacultyProfile={() => setAppState('faculty-profile')}
             />
           </View>
         )}
@@ -620,6 +624,28 @@ export default function App() {
         {appState === 'student-profile' && (
           <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
             <StudentProfileScreen
+              colors={colors}
+              isDark={isDark}
+              onBack={() => setAppState('dashboard')}
+              onOpenSettings={() => setAppState('settings')}
+              onLockApp={handleLockApp}
+            />
+          </View>
+        )}
+
+        {appState === 'faculty-notices' && (
+          <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
+            <FacultyNoticesScreen
+              colors={colors}
+              isDark={isDark}
+              onBack={() => setAppState('dashboard')}
+            />
+          </View>
+        )}
+
+        {appState === 'faculty-profile' && (
+          <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
+            <FacultyProfileScreen
               colors={colors}
               isDark={isDark}
               onBack={() => setAppState('dashboard')}
