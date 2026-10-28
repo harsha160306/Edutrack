@@ -18,7 +18,8 @@
     "android:usb": "node scripts/android-dev.mjs",
     "adb:reverse": "node scripts/adb-reverse-all.mjs",
     "ios": "node scripts/run-with-safe-path.mjs npx expo start --ios",
-    "web": "node scripts/start-web.mjs"
+    "web": "node scripts/start-web.mjs",
+    "postinstall": "node scripts/patch-onedrive-metro.js"
   },
   "dependencies": {
     "@callstack/liquid-glass": "^0.7.1",

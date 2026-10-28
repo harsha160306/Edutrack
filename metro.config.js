@@ -1,5 +1,49 @@
 const path = require('path');
 const fs = require('fs');
+
+/**
+ * Fix: On Windows with OneDrive, reparse points are flagged as isSymbolicLink === true
+ * in libuv/Node Dirent, but fs.readlink fails with EINVAL because they are not actual symlinks.
+ * This patch ensures Metro's crawler treats OneDrive reparse points as regular files.
+ */
+if (process.platform === 'win32') {
+  const origIsSymbolicLink = fs.Dirent.prototype.isSymbolicLink;
+  const origIsFile = fs.Dirent.prototype.isFile;
+
+  fs.Dirent.prototype.isSymbolicLink = function() {
+    const isLink = origIsSymbolicLink.call(this);
+    if (!isLink) return false;
+    const parent = this.parentPath || this.path || '';
+    const fullPath = path.join(parent, this.name);
+    try {
+      fs.readlinkSync(fullPath);
+      return true;
+    } catch (err) {
+      if (err && (err.code === 'EINVAL' || err.code === 'UNKNOWN')) {
+        return false;
+      }
+      return isLink;
+    }
+  };
+
+  fs.Dirent.prototype.isFile = function() {
+    if (origIsFile.call(this)) return true;
+    if (origIsSymbolicLink.call(this)) {
+      const parent = this.parentPath || this.path || '';
+      const fullPath = path.join(parent, this.name);
+      try {
+        fs.readlinkSync(fullPath);
+        return false;
+      } catch (err) {
+        if (err && (err.code === 'EINVAL' || err.code === 'UNKNOWN')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+}
+
 const { getDefaultConfig } = require('expo/metro-config');
 
 /**
