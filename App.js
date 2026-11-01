@@ -19,7 +19,7 @@ import {
   MpinSetupScreen,
   MpinUnlockScreen,
 } from './security/mpin';
-import { markMpinSetupSkipped } from './features/mpin-setup-status';
+import { markMpinSetupSkipped, clearMpinSetupSkipped } from './features/mpin-setup-status';
 import { saveSession, loadSession } from './security/session';
 import { signInWithPlatform } from './features/platform-auth';
 import { clearAllStoredCredentials } from './security/signOut';

@@ -57,6 +57,9 @@ import {
   ShieldAlert,
   ShieldCheck,
   CheckCircle2,
+  Send,
+  GraduationCap,
+  ClipboardCheck,
 } from 'lucide-react-native';
 import {
   useMpinSetupStatus,

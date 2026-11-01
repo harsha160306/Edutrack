@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, useWindowDimensions, Keyboard } from 'react-native';
-import { ScanLine, ClipboardList, ShieldCheck, ArrowRight, Bell, IdCard } from 'lucide-react-native';
+import { ScanLine, ClipboardList, ShieldCheck, ArrowRight, Bell, IdCard, Users } from 'lucide-react-native';
 import { BRAND_SANS_FONT } from './brand_header';
 import { FlowTopBar } from '../features/network-status';
 import { useEdgeSwipeBack } from '../hooks/useEdgeSwipeBack';
