@@ -100,6 +100,9 @@ import {
   getDashboardBottomNavOffset,
 } from './DashboardBottomNav';
 import { AnalyticsWorkInProgressScreen } from './AnalyticsWorkInProgressScreen';
+import { AdminAnalyticsScreen } from './AdminAnalyticsScreen';
+import { AddNoticeModal } from '../features/faculty-notices/AddNoticeModal';
+import { StudentAllocationModal } from '../features/student-allocation/StudentAllocationModal';
 import { AppleAlertModal } from './AppleAlertModal';
 import { useBottomSheetMotion } from './bottomSheetMotion';
 import {
@@ -344,8 +347,10 @@ const DEMO_LATECOMERS = {
       name: 'SANDEEP K.',
       idNo: '22H71A05A1',
       dept: 'CSE-3A',
-      date: '03 May 2026',
+      date: 'Today',
       time: '09:42 AM',
+      type: 'late',
+      reportedBy: 'Dr. K. V. Raman',
     },
     {
       id: 'ma',
@@ -353,8 +358,10 @@ const DEMO_LATECOMERS = {
       name: 'MOHIT A.',
       idNo: '22H71A0442',
       dept: 'ECE-2B',
-      date: '03 May 2026',
+      date: 'Today',
       time: '10:15 AM',
+      type: 'late',
+      reportedBy: 'Dr. Arun Kumar',
     },
   ],
   today: [
@@ -364,8 +371,10 @@ const DEMO_LATECOMERS = {
       name: 'SANDEEP K.',
       idNo: '22H71A05A1',
       dept: 'CSE-3A',
-      date: '03 May 2026',
+      date: 'Today',
       time: '09:42 AM',
+      type: 'late',
+      reportedBy: 'Dr. K. V. Raman',
     },
     {
       id: 'ma',
@@ -373,8 +382,10 @@ const DEMO_LATECOMERS = {
       name: 'MOHIT A.',
       idNo: '22H71A0442',
       dept: 'ECE-2B',
-      date: '03 May 2026',
+      date: 'Today',
       time: '10:15 AM',
+      type: 'late',
+      reportedBy: 'Dr. Arun Kumar',
     },
     {
       id: 'rp',
@@ -382,8 +393,10 @@ const DEMO_LATECOMERS = {
       name: 'RIYA P.',
       idNo: '22H71A03B5',
       dept: 'MECH-1C',
-      date: '03 May 2026',
+      date: 'Today',
       time: '11:03 AM',
+      type: 'indiscipline',
+      reportedBy: 'Prof. M. V. Subbarao',
     },
     {
       id: 'ak',
@@ -391,8 +404,21 @@ const DEMO_LATECOMERS = {
       name: 'ANIKET K.',
       idNo: '22H71A06C2',
       dept: 'CSE-2B',
-      date: '03 May 2026',
+      date: 'Today',
       time: '11:47 AM',
+      type: 'late',
+      reportedBy: 'Mrs. S. Lakshmi',
+    },
+    {
+      id: 'hm',
+      initials: 'HM',
+      name: 'HARSHITHA M.',
+      idNo: '22H71A05E8',
+      dept: 'CSE-3B',
+      date: 'Today',
+      time: '12:05 PM',
+      type: 'indiscipline',
+      reportedBy: 'Dr. K. S. Rao',
     },
   ],
 };
@@ -503,7 +529,10 @@ export const DashboardScreen = ({
   const [autoSyncIntervalMinutes, setAutoSyncIntervalMinutes] = useState(5);
   const [activityTab, setActivityTab] = useState('submitted');
   const [activityViewMode, setActivityViewMode] = useState('grid');
-  const [quickActionTab, setQuickActionTab] = useState('daily');
+  const isAdmin = role === 'admin' || role === 'hod' || accountId === 'admin';
+  const [quickActionTab, setQuickActionTab] = useState(role === 'admin' ? 'notices' : 'daily');
+  const [addNoticeModalVisible, setAddNoticeModalVisible] = useState(false);
+  const [studentAllocationModalVisible, setStudentAllocationModalVisible] = useState(false);
   const [enablingBiometric, setEnablingBiometric] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState('home');
   const [markLatecomerModalVisible, setMarkLatecomerModalVisible] = useState(false);
@@ -758,7 +787,7 @@ export const DashboardScreen = ({
     resetPullState(false);
   }, [clearPullPrompted, resetPullState]);
 
-  const accountDisplay = useMemo(() => getAccountDisplay(isFaculty), [isFaculty]);
+  const accountDisplay = useMemo(() => getAccountDisplay(role ?? isFaculty), [role, isFaculty]);
 
   const markedByYouCount = isFaculty
     ? String(facultySync.todayMarkedCount || 0)
@@ -1434,6 +1463,42 @@ export const DashboardScreen = ({
   );
 
   const activitySummaryItems = useMemo(() => {
+    if (isAdmin) {
+      return [
+        {
+          key: 'latecomers',
+          Icon: UserCheck,
+          tone: '#3B82F6',
+          bg: getDashboardAccentBackground(isDark, '#3B82F6', '#EFF6FF'),
+          value: '14',
+          label: 'LATECOMERS',
+          onPress: () => {
+            if (Platform.OS !== 'web') Vibration.vibrate(30);
+            onOpenHistory?.('all');
+          },
+        },
+        {
+          key: 'indiscipline',
+          Icon: AlertTriangle,
+          tone: '#F59E0B',
+          bg: getDashboardAccentBackground(isDark, '#F59E0B', '#FFFBEB'),
+          value: '6',
+          label: 'IN-DISCIPLINE',
+          onPress: () => {
+            if (Platform.OS !== 'web') Vibration.vibrate(30);
+            onOpenHistory?.('all');
+          },
+        },
+        {
+          key: 'pending',
+          Icon: RefreshCw,
+          tone: '#10B981',
+          bg: getDashboardAccentBackground(isDark, '#10B981', '#ECFDF5'),
+          value: '0',
+          label: 'PENDING',
+        },
+      ];
+    }
     if (isFaculty) {
       const markedValue =
         facultySync.todayMarkedCount > 0
@@ -1620,6 +1685,8 @@ export const DashboardScreen = ({
           date: entry.item.date,
           time: entry.item.time,
           pendingSync: false,
+          type: entry.item.type,
+          reportedBy: entry.item.reportedBy,
         };
       }),
     [visibleActivityEntries],
@@ -1652,6 +1719,123 @@ export const DashboardScreen = ({
 
   const quickActionButtons = (() => {
     const iconBg = (light, tone) => getDashboardAccentBackground(isDark, tone, light);
+    if (isAdmin) {
+      if (quickActionTab === 'notices') {
+        return [
+          {
+            key: 'add-notice',
+            label: 'BROADCAST',
+            sublabel: 'NOTICE',
+            Icon: Send,
+            tone: '#3B82F6',
+            bg: iconBg('#EFF6FF', '#3B82F6'),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              setAddNoticeModalVisible(true);
+            },
+          },
+          {
+            key: 'view-notices',
+            label: 'VIEW',
+            sublabel: 'CIRCULARS',
+            Icon: Bell,
+            tone: '#F59E0B',
+            bg: iconBg('#FFFBEB', '#F59E0B'),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              onOpenFacultyNotices?.();
+            },
+          },
+          {
+            key: 'audit-notices',
+            label: 'PORTAL',
+            sublabel: 'AUDIT',
+            Icon: FileText,
+            tone: '#10B981',
+            bg: iconBg('#ECFDF5', '#10B981'),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              Alert.alert('Circulars Sync Status', 'Department circulars are active and synced across Faculty & Student portals.');
+            },
+          },
+        ];
+      }
+
+      if (quickActionTab === 'faculty') {
+        return [
+          {
+            key: 'global',
+            label: 'GLOBAL',
+            sublabel: 'LOGS',
+            Icon: LayoutGrid,
+            tone: '#10B981',
+            bg: iconBg('#ECFDF5', '#10B981'),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              onOpenHistory?.('all');
+            },
+          },
+          {
+            key: 'members',
+            label: 'ALL',
+            sublabel: 'MEMBERS',
+            Icon: Users,
+            tone: '#3B82F6',
+            bg: iconBg('#EFF6FF', '#3B82F6'),
+            onPress: openMembers,
+          },
+          {
+            key: 'shift',
+            label: 'SHIFT',
+            sublabel: 'INFO',
+            Icon: Clock,
+            tone: '#F59E0B',
+            bg: iconBg('#FFFBEB', '#F59E0B'),
+            onPress: () => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              setShiftInfoVisible(true);
+            },
+          },
+        ];
+      }
+
+      // 'students' tab
+      return [
+        {
+          key: 'allocate',
+          label: 'ALLOCATE',
+          sublabel: 'MENTORS',
+          Icon: GraduationCap,
+          tone: '#2563EB',
+          bg: iconBg('#EFF6FF', '#2563EB'),
+          onPress: () => {
+            if (Platform.OS !== 'web') Vibration.vibrate(30);
+            setStudentAllocationModalVisible(true);
+          },
+        },
+        {
+          key: 'search-students',
+          label: 'SEARCH',
+          sublabel: 'ROLL NO',
+          Icon: Search,
+          tone: '#F97316',
+          bg: iconBg('#FFF7ED', '#F97316'),
+          onPress: openSearch,
+        },
+        {
+          key: 'roster-summary',
+          label: 'MASTER',
+          sublabel: 'ROSTER',
+          Icon: ClipboardCheck,
+          tone: '#10B981',
+          bg: iconBg('#ECFDF5', '#10B981'),
+          onPress: () => {
+            if (Platform.OS !== 'web') Vibration.vibrate(30);
+            setStudentAllocationModalVisible(true);
+          },
+        },
+      ];
+    }
     if (isFaculty) {
       if (quickActionTab === 'daily') {
         return [
@@ -1989,10 +2173,14 @@ export const DashboardScreen = ({
         ]}
       >
       {activeNavTab === 'notices' ? (
-        <AnalyticsWorkInProgressScreen
-          isDark={isDark}
-          bottomOffset={bottomNavOffset}
-        />
+        isAdmin ? (
+          <AdminAnalyticsScreen isDark={isDark} bottomOffset={bottomNavOffset} />
+        ) : (
+          <AnalyticsWorkInProgressScreen
+            isDark={isDark}
+            bottomOffset={bottomNavOffset}
+          />
+        )
       ) : (
       <DashboardScrollView
         ref={scrollViewRef}
@@ -2095,10 +2283,14 @@ export const DashboardScreen = ({
                     { gap: SEGMENT_SWITCHER.gap },
                   ]}
                 >
-                  {[
+                  {(isAdmin ? [
+                    { id: 'notices', label: 'NOTICES' },
+                    { id: 'faculty', label: 'FACULTY' },
+                    { id: 'students', label: 'STUDENTS' },
+                  ] : [
                     { id: 'daily', label: 'DAILY' },
                     { id: 'tools', label: 'COMMITTEE' },
-                  ].map((option, index) => {
+                  ]).map((option, index) => {
                     const seg = isDark ? SEGMENT_SWITCHER.dark : SEGMENT_SWITCHER.light;
                     const selected = quickActionTab === option.id;
                     return (
@@ -2232,7 +2424,7 @@ export const DashboardScreen = ({
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionHeaderText}>
                     <Text style={[styles.sectionTitle, isDark && styles.textWhite]}>
-                      {Platform.OS === 'web' ? 'RECENT IN-DISCIPLINE & LATECOMERS' : 'RECENT LATECOMERS'}
+                      {isAdmin ? 'RECENT LATECOMERS & IN-DISCIPLINE' : Platform.OS === 'web' ? 'RECENT IN-DISCIPLINE & LATECOMERS' : 'RECENT LATECOMERS'}
                     </Text>
                     <Text style={[styles.sectionSubtitle, isDark && styles.sectionSubtitleDark]}>
                       {formatActivitySectionDate()}
@@ -2298,6 +2490,8 @@ export const DashboardScreen = ({
                         time={item.time}
                         isDark={isDark}
                         pendingSync={item.pendingSync}
+                        type={item.type}
+                        reportedBy={item.reportedBy}
                       />
                     ))}
                   </ScrollView>
@@ -2514,6 +2708,20 @@ export const DashboardScreen = ({
         dismissOnBackdrop
         onRequestClose={() => setShiftInfoVisible(false)}
         buttons={[{ label: 'OK', style: 'default', onPress: () => setShiftInfoVisible(false) }]}
+      />
+
+      <AddNoticeModal
+        visible={addNoticeModalVisible}
+        onClose={() => setAddNoticeModalVisible(false)}
+        isDark={isDark}
+        colors={colors}
+      />
+
+      <StudentAllocationModal
+        visible={studentAllocationModalVisible}
+        onClose={() => setStudentAllocationModalVisible(false)}
+        isDark={isDark}
+        colors={colors}
       />
 
       <AppleAlertModal
@@ -3076,7 +3284,7 @@ const ActivityListRow = ({ initials, name, id, dept, date, time, isDark, pending
 );
 };
 
-const ActivityCard = ({ initials, name, id, dept, date, time, isDark, pendingSync }) => {
+const ActivityCard = ({ initials, name, id, dept, date, time, isDark, pendingSync, type, reportedBy }) => {
   const avatarColors = ['#FDE68A', '#F59E0B', '#EA580C'];
   const statusTone = getActivityStatusTone(pendingSync, isDark);
 
@@ -3121,6 +3329,18 @@ const ActivityCard = ({ initials, name, id, dept, date, time, isDark, pendingSyn
                 {dept}
               </Text>
             </View>
+            {reportedBy ? (
+              <Text
+                style={[
+                  styles.activityId,
+                  isDark && styles.activityIdDark,
+                  { fontSize: 10, marginTop: 3, fontStyle: 'italic', opacity: 0.8 },
+                ]}
+                numberOfLines={1}
+              >
+                By: {reportedBy}
+              </Text>
+            ) : null}
           </View>
           <View style={[styles.activityFooter, isDark && styles.activityFooterDark]}>
             <View style={styles.activityWhenCol}>
@@ -3133,10 +3353,31 @@ const ActivityCard = ({ initials, name, id, dept, date, time, isDark, pendingSyn
                 </Text>
               ) : null}
             </View>
-            <View style={[styles.activityStatusBadge, { backgroundColor: statusTone.bg }]}>
-              <Clock size={10} color={statusTone.text} strokeWidth={2.5} />
-              <Text style={[styles.activityStatusText, { color: statusTone.text }]}>
-                {statusTone.label}
+            <View
+              style={[
+                styles.activityStatusBadge,
+                {
+                  backgroundColor:
+                    type === 'indiscipline'
+                      ? isDark
+                        ? 'rgba(245, 158, 11, 0.2)'
+                        : '#FFFBEB'
+                      : statusTone.bg,
+                },
+              ]}
+            >
+              {type === 'indiscipline' ? (
+                <AlertTriangle size={10} color="#D97706" strokeWidth={2.5} />
+              ) : (
+                <Clock size={10} color={statusTone.text} strokeWidth={2.5} />
+              )}
+              <Text
+                style={[
+                  styles.activityStatusText,
+                  { color: type === 'indiscipline' ? '#D97706' : statusTone.text },
+                ]}
+              >
+                {type === 'indiscipline' ? 'IN-DISCIPLINE' : statusTone.label}
               </Text>
             </View>
           </View>

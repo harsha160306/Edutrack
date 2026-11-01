@@ -15,6 +15,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Image,
+  Vibration,
 } from 'react-native';
 import { 
   Eye, 
@@ -87,7 +88,7 @@ const getLoginUi = (colors, isDark) => ({
   resendMuted: isDark ? '#94a3b8' : '#64748b',
 });
 
-export const LoginScreen = ({ colors, role = 'faculty', onLogin, onBack, isDark: isDarkProp }) => {
+export const LoginScreen = ({ colors, role = 'faculty', onRoleChange, onLogin, onBack, isDark: isDarkProp }) => {
   const { width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { status: networkStatus } = useNetworkStatus();
@@ -331,6 +332,28 @@ export const LoginScreen = ({ colors, role = 'faculty', onLogin, onBack, isDark:
           reserveLeadingSpace={!onBack}
           paddingHorizontal={24}
         />
+
+        {/* Circular Admin symbol toggle button (Image 1) */}
+        <TouchableOpacity
+          style={[
+            styles.adminSymbolFloatingBtn,
+            { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)' },
+            role === 'admin' && styles.adminSymbolFloatingBtnActive,
+          ]}
+          onPress={() => {
+            if (Platform.OS !== 'web') Vibration.vibrate(30);
+            const nextRole = role === 'admin' ? 'faculty' : 'admin';
+            if (nextRole === 'admin') {
+              setEmail('hod.cse@mic.edu');
+            }
+            onRoleChange?.(nextRole);
+          }}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Switch to Admin Sign In"
+        >
+          <Shield size={20} color={role === 'admin' ? '#818CF8' : isDark ? '#CBD5E1' : '#475569'} strokeWidth={2.4} />
+        </TouchableOpacity>
 
         <ScrollView 
           contentContainerStyle={[
@@ -594,9 +617,11 @@ export const LoginScreen = ({ colors, role = 'faculty', onLogin, onBack, isDark:
                 </View>
               </View>
               <Text style={[styles.privacyText, { color: ui.privacyText }]}>
-                {role === 'student'
-                  ? 'Your Student Account information is used to sign in securely and view your discipline records.'
-                  : 'Your Faculty Account information is used to allow you to sign in securely and access student records.'}{' '}
+                {role === 'admin'
+                  ? 'Your HOD / Admin Account information is used to allow you to manage department faculty, student allocations, notices, and disciplinary records.'
+                  : role === 'student'
+                    ? 'Your Student Account information is used to sign in securely and view your discipline records.'
+                    : 'Your Faculty Account information is used to allow you to sign in securely and access student records.'}{' '}
                 <Text style={{ color: colors.secondary, fontWeight: '700' }}>
                   See how your data is managed...
                 </Text>
@@ -631,6 +656,21 @@ export const LoginScreen = ({ colors, role = 'faculty', onLogin, onBack, isDark:
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  adminSymbolFloatingBtn: {
+    position: 'absolute',
+    top: 68,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 99,
+  },
+  adminSymbolFloatingBtnActive: {
+    borderWidth: 1.5,
+    borderColor: '#818CF8',
+  },
   scrollView: {
     flex: 1,
   },

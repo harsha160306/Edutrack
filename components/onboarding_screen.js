@@ -26,6 +26,26 @@ const ONBOARDING_STEPS = {
       desc: 'Stay connected with the central committee for global insights and campus security.',
     },
   ],
+  admin: [
+    {
+      icon: ShieldCheck,
+      colorKey: 'primary',
+      title: 'Department Oversight',
+      desc: 'Oversee department faculty, gate cutoff enforcement, and student discipline records.',
+    },
+    {
+      icon: Users,
+      colorKey: 'secondary',
+      title: 'Student Allocation',
+      desc: 'Allocate at least 25 students per faculty mentor across 1st to 4th year B.Tech.',
+    },
+    {
+      icon: Bell,
+      colorKey: 'success',
+      title: 'Broadcast Circulars',
+      desc: 'Publish and distribute official department circulars to faculty and student portals.',
+    },
+  ],
   student: [
     {
       icon: ClipboardList,
@@ -110,7 +130,7 @@ export const OnboardingScreen = ({ colors, role = 'faculty', onComplete, onBack 
           <Icon size={64} color={iconColor} strokeWidth={1.5} />
         </View>
         <Text style={[styles.roleTag, { color: colors.textMuted }]}>
-          {role === 'student' ? 'STUDENT MODE' : 'FACULTY MODE'}
+          {role === 'admin' ? 'ADMIN / HOD MODE' : role === 'student' ? 'STUDENT MODE' : 'FACULTY MODE'}
         </Text>
         <Text style={[styles.title, { color: colors.text }]}>{current.title}</Text>
         <Text style={[styles.desc, { color: colors.textMuted }]}>{current.desc}</Text>

@@ -49,4 +49,21 @@ patchFile(metroFileMapPath, [
   },
 ]);
 
+// 3. Patch metro/src/node-haste/DependencyGraph.js
+const metroDependencyGraphPath = path.join('node_modules', 'metro', 'src', 'node-haste', 'DependencyGraph.js');
+patchFile(metroDependencyGraphPath, [
+  {
+    target: "function getOrCreateMap(map, field) {\n  let subMap = map.get(field);\n  if (!subMap) {\n    subMap = new Map();\n    map.set(field, subMap);\n  }\n  return subMap;\n}",
+    replacement: "function getOrCreateMap(map, field) {\n  if (!map) {\n    return new Map();\n  }\n  let subMap = map.get(field);\n  if (!subMap) {\n    subMap = new Map();\n    map.set(field, subMap);\n  }\n  return subMap;\n}",
+  },
+  {
+    target: "    this._config = config;\n    const { hasReducedPerformance, watch } = options ?? {};",
+    replacement: "    this._config = config;\n    this._resolutionCache = new Map();\n    const { hasReducedPerformance, watch } = options ?? {};",
+  },
+  {
+    target: "    const mapByResolverOptions = this._resolutionCache;",
+    replacement: "    const mapByResolverOptions = this._resolutionCache ?? (this._resolutionCache = new Map());",
+  },
+]);
+
 console.log('[patch-onedrive-metro] Done!');

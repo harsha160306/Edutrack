@@ -7,9 +7,10 @@ import {
   Platform,
   Dimensions,
   ScrollView,
+  Vibration,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GraduationCap, UserRound, ArrowRight, Check } from 'lucide-react-native';
+import { GraduationCap, UserRound, ArrowRight, Check, ShieldCheck } from 'lucide-react-native';
 import { BrandHeader } from './brand_header';
 import { RoleSelectBackdrop, SystemGlassPanel, DASHBOARD_DARK_SURFACES } from './apple_material';
 import { NetworkStatusBadge } from '../features/network-status';
@@ -24,6 +25,11 @@ const ROLE_ACCENTS = {
     accent: '#60A5FA',
     soft: 'rgba(96, 165, 250, 0.24)',
     glow: 'rgba(96, 165, 250, 0.45)',
+  },
+  admin: {
+    accent: '#818CF8',
+    soft: 'rgba(129, 140, 248, 0.24)',
+    glow: 'rgba(129, 140, 248, 0.5)',
   },
 };
 
@@ -110,6 +116,7 @@ const getIconWrapBg = (isDark, roleId) => {
   if (IS_NATIVE_MOBILE && isDark) {
     return roleId === 'faculty' ? NATIVE_DARK.iconFacultyBg : NATIVE_DARK.iconStudentBg;
   }
+  if (roleId === 'admin') return ROLE_ACCENTS.admin.soft;
   return roleId === 'faculty' ? ROLE_ACCENTS.faculty.soft : ROLE_ACCENTS.student.soft;
 };
 
@@ -182,6 +189,13 @@ export const RoleSelectScreen = ({ colors, isDark = false, onSelect }) => {
       icon: GraduationCap,
       ...ROLE_ACCENTS.student,
     },
+    {
+      id: 'admin',
+      title: 'HOD / Admin',
+      desc: 'Department administration, student mentor allocation, and circular management.',
+      icon: ShieldCheck,
+      ...ROLE_ACCENTS.admin,
+    },
   ];
   const continueAccent = ROLE_ACCENTS.faculty.accent;
 
@@ -194,6 +208,18 @@ export const RoleSelectScreen = ({ colors, isDark = false, onSelect }) => {
       />
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.topBar}>
+          <TouchableOpacity
+            style={[styles.adminSymbolBtn, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' }]}
+            onPress={() => {
+              if (Platform.OS !== 'web') Vibration.vibrate(30);
+              onSelect?.('admin');
+            }}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Admin / HOD Sign In"
+          >
+            <ShieldCheck size={20} color={isDark ? '#E2E8F0' : '#334155'} strokeWidth={2.4} />
+          </TouchableOpacity>
           <NetworkStatusBadge colors={colors} />
         </View>
 
@@ -382,9 +408,17 @@ const styles = StyleSheet.create({
     zIndex: 1,
     backgroundColor: 'transparent',
   },
+  adminSymbolBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     alignItems: 'center',
     paddingHorizontal: H_PADDING,
     paddingTop: 12,

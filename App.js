@@ -79,6 +79,7 @@ export default function App() {
   const themePreferenceTouchedRef = useRef(false);
 
   const accountId = userRole ?? 'faculty';
+  const isFacultyOrAdmin = accountId === 'faculty' || accountId === 'admin';
 
   const bumpMpinStatus = useCallback(() => {
     setMpinStatusEpoch((n) => n + 1);
@@ -421,6 +422,7 @@ export default function App() {
               colors={colors}
               isDark={isDark}
               role={userRole}
+              onRoleChange={(newRole) => setUserRole(newRole)}
               onLogin={async (credentials) => {
                 if (!userRole) return;
                 if (credentials?.email && credentials?.password) {
@@ -546,7 +548,7 @@ export default function App() {
           </View>
         )}
 
-        {appState === 'marked' && accountId === 'faculty' && (
+        {appState === 'marked' && isFacultyOrAdmin && (
           <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
             <MarkedLatecomersScreen
               colors={colors}
@@ -558,7 +560,7 @@ export default function App() {
           </View>
         )}
 
-        {appState === 'latecomer-history' && accountId === 'faculty' && (
+        {appState === 'latecomer-history' && isFacultyOrAdmin && (
           <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
             <LatecomerHistoryScreen
               colors={colors}
@@ -571,7 +573,7 @@ export default function App() {
           </View>
         )}
 
-        {appState === 'members' && accountId === 'faculty' && (
+        {appState === 'members' && isFacultyOrAdmin && (
           <View style={[styles.fullScreen, { backgroundColor: colors.background }]}>
             <MembersListScreen
               colors={colors}
@@ -648,6 +650,7 @@ export default function App() {
             <FacultyProfileScreen
               colors={colors}
               isDark={isDark}
+              role={accountId}
               onBack={() => setAppState('dashboard')}
               onOpenSettings={() => setAppState('settings')}
               onLockApp={handleLockApp}
@@ -661,7 +664,7 @@ export default function App() {
               colors={colors}
               isDark={isDark}
               accountId={accountId}
-              isFaculty={accountId === 'faculty'}
+              isFaculty={isFacultyOrAdmin}
               mpinStatusRefreshKey={mpinStatusEpoch}
               themePreference={themePreference}
               onThemePreferenceChange={handleThemePreferenceChange}
@@ -681,7 +684,7 @@ export default function App() {
 
         {(appState === 'searching' ||
           (appState === 'scanning' && scanReturnTo === 'searching')) &&
-          accountId === 'faculty' && (
+          isFacultyOrAdmin && (
           <View
             style={[
               styles.fullScreen,
@@ -707,7 +710,7 @@ export default function App() {
           </View>
         )}
 
-        {appState === 'scanning' && accountId === 'faculty' && (
+        {appState === 'scanning' && isFacultyOrAdmin && (
           <View
             style={[
               styles.fullScreen,

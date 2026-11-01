@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -145,12 +145,19 @@ export const FACULTY_NOTICES_DATA = [
 
 const CATEGORIES = ['All', 'Discipline', 'Duties', 'Academic', 'Research', 'Admin'];
 
+import { getGlobalNotices, subscribeToNotices } from './noticesStore';
+
 export const FacultyNoticesScreen = ({ colors, isDark, onBack }) => {
   const insets = useSafeAreaInsets();
+  const [noticesList, setNoticesList] = useState(() => getGlobalNotices());
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [readNotices, setReadNotices] = useState({});
+
+  useEffect(() => {
+    return subscribeToNotices((updated) => setNoticesList(updated));
+  }, []);
 
   const textColor = isDark ? '#F8FAFC' : '#0F172A';
   const mutedColor = isDark ? '#94A3B8' : '#64748B';
@@ -158,7 +165,8 @@ export const FacultyNoticesScreen = ({ colors, isDark, onBack }) => {
   const borderCol = isDark ? '#334155' : '#E2E8F0';
   const isWeb = Platform.OS === 'web';
 
-  const filteredNotices = FACULTY_NOTICES_DATA.filter((n) => {
+  const filteredNotices = noticesList.filter((n) => {
+    if (n.audience && n.audience === 'Students') return false; // Faculty screen hides student-only
     if (activeCategory !== 'All' && n.category !== activeCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();

@@ -41,6 +41,47 @@ import {
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+export const ADMIN_PROFILE_DATA = {
+  personal: {
+    fullName: 'Dr. K. S. Rao, Ph.D.',
+    employeeId: 'HOD102938',
+    designation: 'Professor & Head of Department (HOD)',
+    department: 'Computer Science & Engineering',
+    deptShort: 'CSE',
+    dateOfJoining: '15 July 2015',
+    experience: '22+ Years in Academia & Research',
+    bloodGroup: 'O +ve',
+    biometricId: 'BIO-1029',
+  },
+  professional: {
+    highestQualification: 'Ph.D. in Computer Science & Engineering',
+    specialization: 'Artificial Intelligence, Big Data & Systems Architecture',
+    phdUniversity: 'Andhra University / IIT Madras Collab',
+    mtechDetails: 'M.Tech (Computer Science - Gold Medalist)',
+    btechDetails: 'B.Tech in Computer Science & Engineering',
+    researchPublications: '42 Scopus / 18 SCI Indexed Journals, 6 Patents Published',
+    currentSubjects: 'Advanced Algorithms (CSE-4A), Department Seminar & Project Guide',
+    labIncharge: 'Department Research & Incubation Centre (HOD Complex)',
+  },
+  duties: {
+    primaryRole: 'Head of Department (HOD), Department of CSE',
+    activeShift: 'Executive Academic & Disciplinary Administration (Full Day)',
+    assignedZone: 'Departmental Faculty, Student Mentor Roster & Gate Oversight',
+    escalationAuthority: 'Final Department Authority, Parent Summoning & Senate Reporting',
+    additionalRoles: 'Chairman BoS (CSE), Academic Council Member, IQAC Coordinator',
+    committeeTenure: 'Permanent Administration',
+  },
+  contact: {
+    collegeEmail: 'hod.cse@mic.edu',
+    directEmail: 'ksrao.hod@mic.edu',
+    primaryMobile: '+91 94401 23456',
+    intercomExtension: 'Ext. 1001',
+    officeLocation: 'Room 101, HOD Chamber, Main Admin Block',
+    disciplineOffice: 'Department Disciplinary & Counseling Council Chamber',
+    reportingAuthority: 'Principal & Governing Body, MIC Tech',
+  },
+};
+
 export const FACULTY_PROFILE_DATA = {
   personal: {
     fullName: 'Dr. K. V. Raman',
@@ -85,10 +126,13 @@ export const FACULTY_PROFILE_DATA = {
 export const FacultyProfileScreen = ({
   colors,
   isDark,
+  role = 'faculty',
   onBack,
   onOpenSettings,
   onLockApp,
 }) => {
+  const isAdmin = role === 'admin' || role === 'hod';
+  const profileData = isAdmin ? ADMIN_PROFILE_DATA : FACULTY_PROFILE_DATA;
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('professional'); // 'professional' | 'duties' | 'contact'
   const [copiedKey, setCopiedKey] = useState(null);
@@ -193,15 +237,15 @@ export const FacultyProfileScreen = ({
 
             <View style={{ flex: 1, marginLeft: 14 }}>
               <Text style={[styles.profileName, { color: textColor }]}>
-                {FACULTY_PROFILE_DATA.personal.fullName}
+                {profileData.personal.fullName}
               </Text>
 
               <View style={styles.empIdRow}>
                 <Text style={[styles.empIdText, { color: '#2563EB' }]}>
-                  {FACULTY_PROFILE_DATA.personal.employeeId}
+                  {profileData.personal.employeeId}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => copyToClipboard(FACULTY_PROFILE_DATA.personal.employeeId, 'heroEmpId')}
+                  onPress={() => copyToClipboard(profileData.personal.employeeId, 'heroEmpId')}
                   style={styles.copyIconMini}
                   activeOpacity={0.7}
                 >
@@ -214,10 +258,10 @@ export const FacultyProfileScreen = ({
               </View>
 
               <Text style={[styles.profileBranch, { color: mutedColor }]}>
-                {FACULTY_PROFILE_DATA.personal.designation}
+                {profileData.personal.designation}
               </Text>
               <Text style={[styles.profileBranch, { color: mutedColor, marginTop: 1 }]}>
-                Dept. of {FACULTY_PROFILE_DATA.personal.deptShort} · MIC
+                Dept. of {profileData.personal.deptShort} · MIC
               </Text>
 
               <View style={styles.badgeRow}>
@@ -307,18 +351,18 @@ export const FacultyProfileScreen = ({
                 </Text>
               </View>
 
-              {renderInfoRow('Employee ID', FACULTY_PROFILE_DATA.personal.employeeId, 'empId')}
-              {renderInfoRow('Designation', FACULTY_PROFILE_DATA.personal.designation)}
-              {renderInfoRow('Department', FACULTY_PROFILE_DATA.personal.department)}
-              {renderInfoRow('Highest Degree', FACULTY_PROFILE_DATA.professional.highestQualification)}
-              {renderInfoRow('Ph.D. Awarded By', FACULTY_PROFILE_DATA.professional.phdUniversity)}
-              {renderInfoRow('Post-Graduation', FACULTY_PROFILE_DATA.professional.mtechDetails)}
-              {renderInfoRow('Under-Graduation', FACULTY_PROFILE_DATA.professional.btechDetails)}
-              {renderInfoRow('Core Specialization', FACULTY_PROFILE_DATA.professional.specialization)}
-              {renderInfoRow('Research & Patents', FACULTY_PROFILE_DATA.professional.researchPublications)}
-              {renderInfoRow('Current Teaching Load', FACULTY_PROFILE_DATA.professional.currentSubjects)}
-              {renderInfoRow('Lab In-Charge', FACULTY_PROFILE_DATA.professional.labIncharge)}
-              {renderInfoRow('Joining Date', FACULTY_PROFILE_DATA.personal.dateOfJoining)}
+              {renderInfoRow('Employee ID', profileData.personal.employeeId, 'empId')}
+              {renderInfoRow('Designation', profileData.personal.designation)}
+              {renderInfoRow('Department', profileData.personal.department)}
+              {renderInfoRow('Highest Degree', profileData.professional.highestQualification)}
+              {renderInfoRow('Ph.D. Awarded By', profileData.professional.phdUniversity)}
+              {renderInfoRow('Post-Graduation', profileData.professional.mtechDetails)}
+              {renderInfoRow('Under-Graduation', profileData.professional.btechDetails)}
+              {renderInfoRow('Core Specialization', profileData.professional.specialization)}
+              {renderInfoRow('Research & Patents', profileData.professional.researchPublications)}
+              {renderInfoRow('Current Teaching Load', profileData.professional.currentSubjects)}
+              {renderInfoRow('Lab In-Charge', profileData.professional.labIncharge)}
+              {renderInfoRow('Joining Date', profileData.personal.dateOfJoining)}
             </View>
           )}
 
@@ -331,13 +375,13 @@ export const FacultyProfileScreen = ({
                 </Text>
               </View>
 
-              {renderInfoRow('Primary Responsibility', FACULTY_PROFILE_DATA.duties.primaryRole)}
-              {renderInfoRow('Active Shift Details', FACULTY_PROFILE_DATA.duties.activeShift)}
-              {renderInfoRow('Assigned Gate Zone', FACULTY_PROFILE_DATA.duties.assignedZone)}
-              {renderInfoRow('Escalation Authority', FACULTY_PROFILE_DATA.duties.escalationAuthority)}
-              {renderInfoRow('Additional Campus Duties', FACULTY_PROFILE_DATA.duties.additionalRoles)}
-              {renderInfoRow('Committee Tenure', FACULTY_PROFILE_DATA.duties.committeeTenure)}
-              {renderInfoRow('Biometric Staff ID', FACULTY_PROFILE_DATA.personal.biometricId, 'bioId')}
+              {renderInfoRow('Primary Responsibility', profileData.duties.primaryRole)}
+              {renderInfoRow('Active Shift Details', profileData.duties.activeShift)}
+              {renderInfoRow('Assigned Gate Zone', profileData.duties.assignedZone)}
+              {renderInfoRow('Escalation Authority', profileData.duties.escalationAuthority)}
+              {renderInfoRow('Additional Campus Duties', profileData.duties.additionalRoles)}
+              {renderInfoRow('Committee Tenure', profileData.duties.committeeTenure)}
+              {renderInfoRow('Biometric Staff ID', profileData.personal.biometricId, 'bioId')}
             </View>
           )}
 
@@ -350,13 +394,13 @@ export const FacultyProfileScreen = ({
                 </Text>
               </View>
 
-              {renderInfoRow('College Email', FACULTY_PROFILE_DATA.contact.collegeEmail, 'colEmail')}
-              {renderInfoRow('Direct Faculty Email', FACULTY_PROFILE_DATA.contact.directEmail, 'dirEmail')}
-              {renderInfoRow('Primary Contact Phone', FACULTY_PROFILE_DATA.contact.primaryMobile, 'mobPhone')}
-              {renderInfoRow('Intercom Extension', FACULTY_PROFILE_DATA.contact.intercomExtension, 'extIntercom')}
-              {renderInfoRow('Faculty Cabin / Office', FACULTY_PROFILE_DATA.contact.officeLocation, 'cabinRoom')}
-              {renderInfoRow('Discipline Cell Chamber', FACULTY_PROFILE_DATA.contact.disciplineOffice)}
-              {renderInfoRow('Reporting Authority', FACULTY_PROFILE_DATA.contact.reportingAuthority)}
+              {renderInfoRow('College Email', profileData.contact.collegeEmail, 'colEmail')}
+              {renderInfoRow('Direct Faculty Email', profileData.contact.directEmail, 'dirEmail')}
+              {renderInfoRow('Primary Contact Phone', profileData.contact.primaryMobile, 'mobPhone')}
+              {renderInfoRow('Intercom Extension', profileData.contact.intercomExtension, 'extIntercom')}
+              {renderInfoRow('Faculty Cabin / Office', profileData.contact.officeLocation, 'cabinRoom')}
+              {renderInfoRow('Discipline Cell Chamber', profileData.contact.disciplineOffice)}
+              {renderInfoRow('Reporting Authority', profileData.contact.reportingAuthority)}
             </View>
           )}
         </View>
